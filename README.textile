@@ -1,3 +1,5 @@
 h2. CakePHP Migrations
 
+Migrations of Ruby on Rails for CakePHP.
+
 UNDER CONSTRUCTION
