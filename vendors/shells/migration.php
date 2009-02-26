@@ -70,7 +70,8 @@ class MigrationShell extends Shell {
 	 */
 	function _exec($action) {
 		extract($this->_selectFile()); // Generate $filename and $classname
-		require $filename;
+		App::import('Vendor', 'Migrations.Migration'); // To not need include in installer file
+		include $filename;
 		if (!class_exists($classname)) {
 			$this->err('The class ' . $classname . ' not in file.');
 			$this->_stop();
