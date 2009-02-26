@@ -39,5 +39,14 @@ class Migration {
      * Remover Index
      */
     function removeIndex(){}
+
+	/**
+	 * Install revision
+	 */
+	function install($revision = -1, $connection = 'default'){}
+	/**
+	 * Uninstall revision
+	 */
+	function uninstall($revision = -1, $connection = 'default'){}
 }
 ?>
