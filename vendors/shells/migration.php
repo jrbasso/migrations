@@ -93,6 +93,7 @@ class MigrationShell extends Shell {
 	 */
 	function up() {
 		//$this->_exec('install');
+		return false;
 	}
 
 	/**
@@ -100,30 +101,42 @@ class MigrationShell extends Shell {
 	 */
 	function down() {
 		//$this->_exec('uninstall');
+		return false;
 	}
 
 	/**
 	 * Down all migrations
 	 */
 	function reset() {
-		if ($this->down() && isset($this->params['force'])) {
-			$fakeSchema = new CakeSchema();
-			$fakeSchema->tables = array_flip($this->db->listSources());
-			if (isset($fakeSchema->tables[$this->_schemaTable])) {
-				unset($fakeSchema->tables[$this->_schemaTable]);
+		if ($this->down()) {
+			if (isset($this->params['force'])) {
+				$fakeSchema = new CakeSchema();
+				$fakeSchema->tables = array_flip($this->db->listSources());
+				if (isset($fakeSchema->tables[$this->_schemaTable])) {
+					unset($fakeSchema->tables[$this->_schemaTable]);
+				}
+				if (!empty($fakeSchema->tables)) {
+					$this->db->begin(null);
+					foreach ($this->db->dropSchema($fakeSchema) as $dropLine) {
+						if (!$this->db->execute($dropLine)) {
+							$this->db->rollback(null);
+							$this->err(__d('Migrations', 'Can not execute drop tables.', true));
+							return false;
+						}
+					}
+					$this->db->commit(null);
+				}
 			}
-			foreach ($this->db->dropSchema($fakeSchema) as $dropLine) {
-				$this->db->execute($dropLine);
-			}
+			return true;
 		}
+		return false;
 	}
 
 	/**
 	 * Down all migrations an Up later
 	 */
 	function rebuild() {
-		$this->reset();
-		$this->up();
+		return $this->reset() && $this->up();
 	}
 
 	/**
@@ -240,6 +253,8 @@ class MigrationShell extends Shell {
 
 }
 
-class CakeSchema {} // Just to use cake functions
+if (!class_exists('CakeSchema')) {
+	class CakeSchema {} // Just to use cake functions
+}
 
 ?>
