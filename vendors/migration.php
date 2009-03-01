@@ -43,10 +43,10 @@ class Migration {
 	/**
 	 * Install revision
 	 */
-	function install($revision = -1, $connection = 'default'){}
+	function install($connection = 'default'){}
 	/**
 	 * Uninstall revision
 	 */
-	function uninstall($revision = -1, $connection = 'default'){}
+	function uninstall($connection = 'default'){}
 }
 ?>

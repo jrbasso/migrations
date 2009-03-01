@@ -2,27 +2,37 @@
 
 class MigrationShell extends Shell {
 
-	/*
+	/**
 	 * Path to installers files
 	 */
 	var $path = null;
 
-	/*
+	/**
 	 * Name of database
 	 */
 	var $connection = 'default';
 
-	/*
-	 * Number of revision to install/uninstall. -1 if latest
+	/**
+	 * DB
 	 */
-	var $revision = -1;
+	var $db = null;
 
-	/*
+	/**
+	 * Schema table in database
+	 */
+	var $_schemaTable = 'schema_migrations';
+
+	/**
+	 * Name of plugin directory
+	 */
+	var $_pluginName = null;
+
+	/**
 	 * Startup script
 	 */
 	function startup() {
 		if (empty($this->params['path'])) {
-			$this->path = $this->params['working'] . DS . 'installers';
+			$this->path = $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations';
 		} else {
 			$this->path = $this->params['path'];
 		}
@@ -31,46 +41,92 @@ class MigrationShell extends Shell {
 			$this->connection = $this->params['connection'];
 		}
 
-		if (!empty($this->params['revision'])) {
-			$this->revision = $this->params['revision'];
-		}
+		$this->_startDBConfig();
+
+		if (preg_match("/\/plugins\/([^\/]+)\/vendors\/shells\/migration\.php$/", $this->Dispatch->shellPath, $matches)) {
+            $this->_pluginName = Inflector::camelize($matches[1]) . '.';
+        }
 
 		parent::startup();
-		$this->out('Migration Shell');
+		$this->out('Migrations Shell');
 		$this->hr();
-		$this->out('Path to migrations scripts: ' . $this->path);
+		$this->out('Path to migrations classes: ' . $this->path);
 		$this->out('Connection to the database: ' . $this->connection);
-		$this->out('Revision: ' . ($this->revision === -1 ? 'Latest' : $this->revision));
+		$this->out('Last migration installed: ' . '');
 		$this->hr();
 	}
 
-	/*
+	/**
+	 * Configs of database
+	 */
+	function _startDBConfig() {
+		config('database');
+
+		App::import('Model', array('ConnectionManager', 'Model'));
+		$this->db =& ConnectionManager::getDataSource($this->connection);
+		$this->db->cacheSources = false;
+
+		$sources = $this->db->sources();
+		if (!is_array($sources)) { // Database connection error
+			$this->_stop();
+		}
+		if (!in_array($this->_schemaTable, $sources)) { // Create table if not exists
+			if (!$this->db->execute($this->db->renderStatement('schema', array(
+				'table' => $this->_schemaTable,
+				'columns' => array(
+					$this->db->buildColumn(array('name' => 'id', 'type' => 'integer', 'null' => false, 'default' => NULL)),
+					$this->db->buildColumn(array('name' => 'version', 'type' => 'integer', 'null' => true, 'default' => NULL)),
+					$this->db->buildColumn(array('name' => 'datetime', 'type' => 'integer', 'null' => true, 'default' => NULL))
+				),
+				'indexes' => $this->db->buildIndex(array('PRIMARY' => array('column' => 'id', 'unique' => 1)))
+			)))) {
+				$this->err(sprintf(__d('Migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
+				$this->_stop();
+			}
+		}
+		$this->SchemaMigration = new Model(array('name' => 'SchemaMigration', 'table' => $this->_schemaTable, 'ds' => $this->connection));
+		$this->_versions = $this->SchemaMigration->find('all');
+	}
+
+	/**
 	 * Main
 	 */
 	function main() {
 		$this->help();
 	}
 
-	/*
+	/**
 	 * Install or update database
 	 */
-	function install() {
+	function up() {
 		$this->_exec('install');
 	}
 
-	/*
+	/**
 	 * Drop or downgrade database
 	 */
-	function uninstall() {
+	function down() {
 		$this->_exec('uninstall');
 	}
 
-	/*
+	/**
+	 * Down all migrations
+	 */
+	function reset() {
+	}
+
+	/**
+	 * Down all migrations an Up later
+	 */
+	function rebuild() {
+	}
+
+	/**
 	 * Check if class and action exists to execute
 	 */
 	function _exec($action) {
-		extract($this->_selectFile()); // Generate $filename and $classname
-		App::import('Vendor', 'Migrations.Migration'); // To not need include in installer file
+		// Generate $filename and $classname
+		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in installer file
 		include $filename;
 		if (!class_exists($classname)) {
 			$this->err('The class ' . $classname . ' not in file.');
@@ -81,73 +137,35 @@ class MigrationShell extends Shell {
 			$this->err('Class ' . $classname . ' not extends Migration.');
 			$this->_stop();
 		}
-		$ok = $script->$action($this->revision, $this->connection);
+		$ok = $script->$action($this->connection);
 		// TODO: Control for revision
 	}
 
-	/*
-	 * Select a file from installer dir
-	 */
-	function _selectFile() {
-		App::import('Core', 'Folder');
-		$folder = new Folder();
-		if (!$folder->cd($this->path)) {
-			$this->err('Specified path not exist.');
-			$this->_stop();
-		}
-		$read = $folder->read();
-		$i = 1;
-		$readFiles = array();
-		foreach ($read[1] as $id => $file) { // Remove files that not is a installer or remove the extension
-			if (strlen($file) < 15 || substr($file, -14) !== '_installer.php') {
-				continue;
-			}
-			$readFiles[$i++] = substr($file, 0, -14);
-		}
-		unset($read);
-		if (empty($readFiles)) {
-			$this->err('Specified path not have installer scripts.');
-			$this->_stop();
-		}
-
-		$readSize = count($readFiles);
-		do {
-			$this->out("\n\nPlease, select a file:");
-			foreach ($readFiles as $id => $file) {
-				$this->out('[' . $id . '] ' . Inflector::humanize($file));
-			}
-			$this->out("[0] Exit. Nothing is changed.\n");
-			$selected = $this->in('Chose: ');
-		} while ($selected < 0 || $selected > $readSize);
-
-		if ($selected == 0) { // Exit option
-			$this->out('Good bye.');
-			$this->_stop();
-		}
-
-		// Return a full path for file and classname
-		return array(
-			'filename' => $this->path . DS . $readFiles[$selected] . '_installer.php',
-			'classname' => Inflector::camelize($readFiles[$selected]) . 'Installer'
-		);
-	}
-
-	/*
+	/**
 	 * Help
 	 */
 	function help() {
-		$this->out("Usage: cake migration <command> <arg1> <arg2>...");
+		$this->out(__d('Migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
-		$this->out('Params:');
-		$this->out("\n\t-connection <config>\n\t\tset db config <config>. Uses 'default' if none is specified");
-		$this->out("\n\t-path <dir>\n\t\tpath <dir> to read and write installer scripts.\n\t\tdefault path: " . $this->params['app'] .  DS . 'installers');
-		$this->out("\n\t-revision <number>\n\t\trevision used do install/uninstall.");
-		$this->out('Commands:');
-		$this->out("\n\tmigration help\n\t\tshows this help message.");
-		$this->out("\n\tmigration install\n\t\tupgrade database to specified revision. Uses latest if none is specified.");
-		$this->out("\n\tmigration uninstall\n\t\tdowngrade database to specified revision. Uses latest if none is specified.");
-		$this->out("");
-		$this->_stop();
+		$this->out(__d('Migrations',
+"Params:
+	-connection <config>
+		set db config <config>. Uses 'default' if none is specified.
+	-path <dir>
+		path <dir> to read and write migrations scripts.
+		default path: " . $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations', true));
+		$this->out(__d('Migrations', 
+"Commands:
+	migration help
+		shows this help message.
+	migration up
+		upgrade database to specified revision. Uses latest if none is specified.
+	migration down
+		downgrade database to specified revision. Uses latest if none is specified.
+	migration reset
+		Reset.
+	migration rebuild
+		Rebuild.", true));
 	}
 
 }
