@@ -66,7 +66,7 @@ class MigrationShell extends Shell {
 		$this->db =& ConnectionManager::getDataSource($this->connection);
 		$this->db->cacheSources = false;
 
-		$sources = $this->db->sources();
+		$sources = $this->db->listSources();
 		if (!is_array($sources)) { // Database connection error
 			$this->_stop();
 		}
@@ -106,6 +106,7 @@ class MigrationShell extends Shell {
 	 * Drop or downgrade database
 	 */
 	function down() {
+		return true;
 		$this->_exec('uninstall');
 	}
 
@@ -113,6 +114,16 @@ class MigrationShell extends Shell {
 	 * Down all migrations
 	 */
 	function reset() {
+		if ($this->down() && isset($this->params['force'])) {
+			$fakeSchema = new CakeSchema();
+			$fakeSchema->tables = array_flip($this->db->listSources());
+			if (isset($fakeSchema->tables[$this->_schemaTable])) {
+				unset($fakeSchema->tables[$this->_schemaTable]);
+			}
+			foreach ($this->db->dropSchema($fakeSchema) as $dropLine) {
+				$this->db->execute($dropLine);
+			}
+		}
 	}
 
 	/**
@@ -165,11 +176,13 @@ class MigrationShell extends Shell {
 	migration down <date>
 		downgrade database to specified date. Date must be in format YYYYMMDDHHMMSS.
 	migration reset
-		execute down of all migrations. If param --force is used, this will drop all tables in database that exist.
+		execute down of all migrations. If param -force is used, this will drop all tables in database that exist.
 	migration rebuild
 		execute a reset an up actions.", true));
 	}
 
 }
+
+class CakeSchema {} // Just to use cake functions
 
 ?>
