@@ -51,7 +51,7 @@ class MigrationShell extends Shell {
 			$last = __d('migrations', 'Nothing installed.', true);
 		} else {
 			$last = end($this->_versions);
-			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['datetime']);
+			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['version']);
 		}
 
 		parent::startup();
@@ -215,12 +215,12 @@ class MigrationShell extends Shell {
 					'key' => 'primary'
 				),
 				'version' => array(
-					'type' => 'datetime',
+					'type' => 'integer',
 					'null' => true,
 					'default' => NULL
 				),
 				'created' => array(
-					'type' => 'datetime',
+					'type' => 'integer',
 					'null' => true,
 					'default' => NULL
 				)
