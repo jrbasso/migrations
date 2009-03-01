@@ -119,6 +119,8 @@ class MigrationShell extends Shell {
 	 * Down all migrations an Up later
 	 */
 	function rebuild() {
+		$this->reset();
+		$this->up();
 	}
 
 	/**
