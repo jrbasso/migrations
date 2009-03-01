@@ -71,15 +71,28 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		if (!in_array($this->_schemaTable, $sources)) { // Create table if not exists
-			if (!$this->db->execute($this->db->renderStatement('schema', array(
-				'table' => $this->_schemaTable,
-				'columns' => array(
-					$this->db->buildColumn(array('name' => 'id', 'type' => 'integer', 'null' => false, 'default' => NULL)),
-					$this->db->buildColumn(array('name' => 'version', 'type' => 'integer', 'null' => true, 'default' => NULL)),
-					$this->db->buildColumn(array('name' => 'datetime', 'type' => 'integer', 'null' => true, 'default' => NULL))
-				),
-				'indexes' => $this->db->buildIndex(array('PRIMARY' => array('column' => 'id', 'unique' => 1)))
-			)))) {
+			$fakeSchema = new CakeSchema();
+			$fakeSchema->tables = array(
+				$this->_schemaTable => array(
+					'id' => array(
+						'type' => 'integer',
+						'null' => false,
+						'default' => NULL,
+						'key' => 'primary'
+					),
+					'version' => array(
+						'type' => 'integer',
+						'null' => true,
+						'default' => NULL
+					),
+					'datetime' => array(
+						'type' => 'integer',
+						'null' => true,
+						'default' => NULL
+					)
+				)
+			);
+			if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
 				$this->err(sprintf(__d('Migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
 				$this->_stop();
 			}
