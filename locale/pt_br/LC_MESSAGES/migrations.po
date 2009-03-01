@@ -1,0 +1,104 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Migrations Plugin\n"
+"POT-Creation-Date: 2009-03-01 15:13-0300\n"
+"PO-Revision-Date: 2009-03-01 15:24-0300\n"
+"Last-Translator: Juan Basso <jrbasso@gmail.com>\n"
+"Language-Team: Juan Basso <jrbasso@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+"X-Poedit-Language: Portuguese\n"
+"X-Poedit-Country: BRAZIL\n"
+
+#: \vendors\shells\migration.php:51
+msgid "Migrations Shell"
+msgstr "Migrations Shell"
+
+#: \vendors\shells\migration.php:53
+msgid "Path to migrations classes: %s"
+msgstr "Caminho para classes de migrations: %s"
+
+#: \vendors\shells\migration.php:54
+msgid "Connection to the database: %s"
+msgstr "Conexão com o banco de dados: %s"
+
+#: \vendors\shells\migration.php:55
+msgid "Last migration installed: %s"
+msgstr "Última migração instalada: %s"
+
+#: \vendors\shells\migration.php:68
+msgid "Your datasource is not supported."
+msgstr "Seu datasource não é suportado."
+
+#: \vendors\shells\migration.php:123
+msgid "Can not execute drop tables."
+msgstr "Não foi possível executar o drop das tabelas."
+
+#: \vendors\shells\migration.php:151
+msgid "Specified path does not exist."
+msgstr "O caminho informado não existe."
+
+#: \vendors\shells\migration.php:175
+msgid "The class %s not in file."
+msgstr "A class %s não está no arquivo."
+
+#: \vendors\shells\migration.php:180
+msgid "Class %s not extends Migration."
+msgstr "A classe %s não extende Migration."
+
+#: \vendors\shells\migration.php:222
+msgid "Schema table \"%s\" can not be created."
+msgstr "A tabela de esquema \"%s\" não pode ser criada."
+
+#: \vendors\shells\migration.php:231
+msgid "Usage: cake migration <command> <arg1> <arg2>..."
+msgstr "Use: cake migration <comando> <arg1> <arg2>..."
+
+#: \vendors\shells\migration.php:233
+msgid ""
+"Params:\n"
+"\t-connection <config>\n"
+"\t\tset db config <config>. Uses 'default' if none is specified.\n"
+"\t-path <dir>\n"
+"\t\tpath <dir> to read and write migrations scripts.\n"
+"\t\tdefault path: %s"
+msgstr ""
+"Parâmetros:\n"
+"\t-connection <config>\n"
+"\t\tseta a configuração do banco de dados. O padrão é 'default'.\n"
+"\t-path <dir>\n"
+"\t\tcaminho para ler e escrever as classes de migrations.\n"
+"\t\tcaminho padrão: %s"
+
+#: \vendors\shells\migration.php:240
+msgid ""
+"Commands:\n"
+"\tmigration help\n"
+"\t\tshows this help message.\n"
+"\tmigration up [date]\n"
+"\t\tupgrade database to specified date. If the date is not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.\n"
+"\tmigration down <date>\n"
+"\t\tdowngrade database to specified date. Date must be in format YYYYMMDDHHMMSS.\n"
+"\tmigration reset\n"
+"\t\texecute down of all migrations. If param -force is used, this will drop all tables in database that exist.\n"
+"\tmigration rebuild\n"
+"\t\texecute a reset an up actions. Param -force can be used."
+msgstr ""
+"Comandos:\n"
+"\tmigration help\n"
+"\t\tmostra esta mensagem de help.\n"
+"\tmigration up [data]\n"
+"\t\tatualiza o banco de dados até a data especificada. Se a data não for especificada, a última será usada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
+"\tmigration down <date>\n"
+"\t\treverte a database até a data especificada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
+"\tmigration reset\n"
+"\t\texecuta o down de todas as migrations. Se o parâmetro -force for usado, todas as tabelas restantes no banco serão excluídas.\n"
+"\tmigration rebuild\n"
+"\t\texecuta o comando de reset, depois de up. O parâmetro -force pode ser usado."
+

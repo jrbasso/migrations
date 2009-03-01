@@ -48,11 +48,11 @@ class MigrationShell extends Shell {
         }
 
 		parent::startup();
-		$this->out(__d('Migrations', 'Migrations Shell', true));
+		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
-		$this->out(sprintf(__d('Migrations', 'Path to migrations classes: %s', true), $this->path));
-		$this->out(sprintf(__d('Migrations', 'Connection to the database: %s', true), $this->connection));
-		$this->out(sprintf(__d('Migrations', 'Last migration installed: %s', true), ''));
+		$this->out(sprintf(__d('migrations', 'Path to migrations classes: %s', true), $this->path));
+		$this->out(sprintf(__d('migrations', 'Connection to the database: %s', true), $this->connection));
+		$this->out(sprintf(__d('migrations', 'Last migration installed: %s', true), ''));
 		$this->hr();
 	}
 
@@ -65,7 +65,7 @@ class MigrationShell extends Shell {
 		App::import('Model', array('ConnectionManager', 'Model'));
 		$this->db =& ConnectionManager::getDataSource($this->connection);
 		if (!is_subclass_of($this->db, 'DboSource')) {
-			$this->err(__d('Migrations', 'Your datasource is not supported.', true));
+			$this->err(__d('migrations', 'Your datasource is not supported.', true));
 			$this->_stop();
 		}
 		$this->db->cacheSources = false;
@@ -120,7 +120,7 @@ class MigrationShell extends Shell {
 					foreach ($this->db->dropSchema($fakeSchema) as $dropLine) {
 						if (!$this->db->execute($dropLine)) {
 							$this->db->rollback(null);
-							$this->err(__d('Migrations', 'Can not execute drop tables.', true));
+							$this->err(__d('migrations', 'Can not execute drop tables.', true));
 							return false;
 						}
 					}
@@ -148,7 +148,7 @@ class MigrationShell extends Shell {
 		App::import('Core', 'Folder');
 		$folder = new Folder();
 		if (!$folder->cd($this->path)) {
-			$this->err(__d('Migrations', 'Specified path does not exist.', true));
+			$this->err(__d('migrations', 'Specified path does not exist.', true));
 			$this->_stop();
 		}
 		$read = $folder->read();
@@ -172,12 +172,12 @@ class MigrationShell extends Shell {
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
 		include $filename;
 		if (!class_exists($classname)) {
-			$this->err(sprintf(__d('Migrations', 'The class %s not in file.', true), $classname));
+			$this->err(sprintf(__d('migrations', 'The class %s not in file.', true), $classname));
 			$this->_stop();
 		}
 		$script = new $classname();
 		if (!is_subclass_of($script, 'Migration')) {
-			$this->err(sprintf(__d('Migrations', 'Class %s not extends Migration.', true), $classname));
+			$this->err(sprintf(__d('migrations', 'Class %s not extends Migration.', true), $classname));
 			$this->_stop();
 		}
 		$ok = $script->$action($this->connection);
@@ -219,7 +219,7 @@ class MigrationShell extends Shell {
 			)
 		);
 		if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
-			$this->err(sprintf(__d('Migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
+			$this->err(sprintf(__d('migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
 			$this->_stop();
 		}
 	}
@@ -228,16 +228,16 @@ class MigrationShell extends Shell {
 	 * Help
 	 */
 	function help() {
-		$this->out(__d('Migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
+		$this->out(__d('migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
-		$this->out(sprintf(__d('Migrations',
+		$this->out(sprintf(__d('migrations',
 "Params:
 	-connection <config>
 		set db config <config>. Uses 'default' if none is specified.
 	-path <dir>
 		path <dir> to read and write migrations scripts.
 		default path: %s", true), $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations'));
-		$this->out(__d('Migrations', 
+		$this->out(__d('migrations', 
 "Commands:
 	migration help
 		shows this help message.
