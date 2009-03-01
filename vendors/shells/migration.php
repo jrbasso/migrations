@@ -158,14 +158,14 @@ class MigrationShell extends Shell {
 "Commands:
 	migration help
 		shows this help message.
-	migration up
-		upgrade database to specified revision. Uses latest if none is specified.
-	migration down
-		downgrade database to specified revision. Uses latest if none is specified.
+	migration up [date]
+		upgrade database to specified date. If date not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.
+	migration down <date>
+		downgrade database to specified date. Date must be in format YYYYMMDDHHMMSS.
 	migration reset
-		Reset.
+		execute down of all migrations. If param --force is used, this will drop all tables in database that exist.
 	migration rebuild
-		Rebuild.", true));
+		execute a reset an up actions.", true));
 	}
 
 }
