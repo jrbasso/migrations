@@ -48,11 +48,11 @@ class MigrationShell extends Shell {
         }
 
 		parent::startup();
-		$this->out('Migrations Shell');
+		$this->out(__d('Migrations', 'Migrations Shell', true));
 		$this->hr();
-		$this->out('Path to migrations classes: ' . $this->path);
-		$this->out('Connection to the database: ' . $this->connection);
-		$this->out('Last migration installed: ' . '');
+		$this->out(sprintf(__d('Migrations', 'Path to migrations classes: %s', true), $this->path));
+		$this->out(sprintf(__d('Migrations', 'Connection to the database: %s', true), $this->connection));
+		$this->out(sprintf(__d('Migrations', 'Last migration installed: %s', true), ''));
 		$this->hr();
 	}
 
@@ -64,6 +64,10 @@ class MigrationShell extends Shell {
 
 		App::import('Model', array('ConnectionManager', 'Model'));
 		$this->db =& ConnectionManager::getDataSource($this->connection);
+		if (!is_subclass_of($this->db, 'DboSource')) {
+			$this->err(__d('Migrations', 'Your datasource is not supported.', true));
+			$this->_stop();
+		}
 		$this->db->cacheSources = false;
 
 		$sources = $this->db->listSources();
@@ -71,34 +75,10 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		if (!in_array($this->_schemaTable, $sources)) { // Create table if not exists
-			$fakeSchema = new CakeSchema();
-			$fakeSchema->tables = array(
-				$this->_schemaTable => array(
-					'id' => array(
-						'type' => 'integer',
-						'null' => false,
-						'default' => NULL,
-						'key' => 'primary'
-					),
-					'version' => array(
-						'type' => 'integer',
-						'null' => true,
-						'default' => NULL
-					),
-					'datetime' => array(
-						'type' => 'integer',
-						'null' => true,
-						'default' => NULL
-					)
-				)
-			);
-			if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
-				$this->err(sprintf(__d('Migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
-				$this->_stop();
-			}
+			$this->__createTable();
 		}
 		$this->SchemaMigration = new Model(array('name' => 'SchemaMigration', 'table' => $this->_schemaTable, 'ds' => $this->connection));
-		$this->_versions = $this->SchemaMigration->find('all');
+		$this->_versions = $this->SchemaMigration->find('all', array('order' => array('SchemaMigration.version' => 'ASC')));
 	}
 
 	/**
@@ -112,15 +92,14 @@ class MigrationShell extends Shell {
 	 * Install or update database
 	 */
 	function up() {
-		$this->_exec('install');
+		//$this->_exec('install');
 	}
 
 	/**
 	 * Drop or downgrade database
 	 */
 	function down() {
-		return true;
-		$this->_exec('uninstall');
+		//$this->_exec('uninstall');
 	}
 
 	/**
@@ -148,23 +127,88 @@ class MigrationShell extends Shell {
 	}
 
 	/**
+	 * Read path info
+	 */
+	function _readPathInfo() {
+		$filesInfo = array();
+
+		App::import('Core', 'Folder');
+		$folder = new Folder();
+		if (!$folder->cd($this->path)) {
+			$this->err(__d('Migrations', 'Specified path does not exist.', true));
+			$this->_stop();
+		}
+		$read = $folder->read();
+		$info = array();
+		foreach ($read[1] as $id => $file) { // Check only files
+			if (!preg_match('/^(\d{14})_(\w+)\.php/', $file, $matches)) {
+				continue;
+			}
+			$timestamp = $this->_dateToTimestamp($matches[1]);
+			$classname = Inflector::camelize($matches[2]);
+			$filesInfo[] = compact('file', 'timestamp', 'classname');
+		}
+		$this->_filesInfo = Set::sort($filesInfo, '{n}.timestamp', 'asc');
+	}
+
+	/**
 	 * Check if class and action exists to execute
 	 */
 	function _exec($action) {
 		// Generate $filename and $classname
-		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in installer file
+		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
 		include $filename;
 		if (!class_exists($classname)) {
-			$this->err('The class ' . $classname . ' not in file.');
+			$this->err(sprintf(__d('Migrations', 'The class %s not in file.', true), $classname));
 			$this->_stop();
 		}
 		$script = new $classname();
 		if (!is_subclass_of($script, 'Migration')) {
-			$this->err('Class ' . $classname . ' not extends Migration.');
+			$this->err(sprintf(__d('Migrations', 'Class %s not extends Migration.', true), $classname));
 			$this->_stop();
 		}
 		$ok = $script->$action($this->connection);
 		// TODO: Control for revision
+	}
+
+	/**
+	 * Timestamp of date in YYYYMMDDHHMMSS format
+	 */
+	function _dateToTimestamp($date) {
+		$data = explode("\r\n", chunk_split($date, 2)); // 0.1 = year, 2 = month, 3 = day, 4 = hour, 5 = minute, 6 second
+		array_pop($data);
+		return mktime($data[4], $data[5], $data[6], $data[2], $data[3], $data[0] . $data[1]);
+	}
+
+	/**
+	 * Function to create table of SchemaMigrations
+	 */
+	function __createTable() {
+		$fakeSchema = new CakeSchema();
+		$fakeSchema->tables = array(
+			$this->_schemaTable => array(
+				'id' => array(
+					'type' => 'integer',
+					'null' => false,
+					'default' => NULL,
+					'key' => 'primary'
+				),
+				'version' => array(
+					'type' => 'datetime',
+					'null' => true,
+					'default' => NULL
+				),
+				'created' => array(
+					'type' => 'datetime',
+					'null' => true,
+					'default' => NULL
+				)
+			)
+		);
+		if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
+			$this->err(sprintf(__d('Migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
+			$this->_stop();
+		}
 	}
 
 	/**
@@ -173,25 +217,25 @@ class MigrationShell extends Shell {
 	function help() {
 		$this->out(__d('Migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
-		$this->out(__d('Migrations',
+		$this->out(sprintf(__d('Migrations',
 "Params:
 	-connection <config>
 		set db config <config>. Uses 'default' if none is specified.
 	-path <dir>
 		path <dir> to read and write migrations scripts.
-		default path: " . $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations', true));
+		default path: %s", true), $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations'));
 		$this->out(__d('Migrations', 
 "Commands:
 	migration help
 		shows this help message.
 	migration up [date]
-		upgrade database to specified date. If date not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.
+		upgrade database to specified date. If the date is not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.
 	migration down <date>
 		downgrade database to specified date. Date must be in format YYYYMMDDHHMMSS.
 	migration reset
 		execute down of all migrations. If param -force is used, this will drop all tables in database that exist.
 	migration rebuild
-		execute a reset an up actions.", true));
+		execute a reset an up actions. Param -force can be used.", true));
 	}
 
 }
