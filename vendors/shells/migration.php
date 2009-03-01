@@ -47,12 +47,19 @@ class MigrationShell extends Shell {
             $this->_pluginName = Inflector::camelize($matches[1]) . '.';
         }
 
+		if (empty($this->_versions)) {
+			$last = __d('migrations', 'Nothing installed.', true);
+		} else {
+			$last = end($this->_versions);
+			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['datetime']);
+		}
+
 		parent::startup();
 		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
 		$this->out(sprintf(__d('migrations', 'Path to migrations classes: %s', true), $this->path));
 		$this->out(sprintf(__d('migrations', 'Connection to the database: %s', true), $this->connection));
-		$this->out(sprintf(__d('migrations', 'Last migration installed: %s', true), ''));
+		$this->out(sprintf(__d('migrations', 'Last migration installed: %s', true), $last));
 		$this->hr();
 	}
 
@@ -116,18 +123,18 @@ class MigrationShell extends Shell {
 					unset($fakeSchema->tables[$this->_schemaTable]);
 				}
 				if (!empty($fakeSchema->tables)) {
-					$this->db->begin(null);
-					foreach ($this->db->dropSchema($fakeSchema) as $dropLine) {
-						if (!$this->db->execute($dropLine)) {
-							$this->db->rollback(null);
+					$this->db->begin($fakeSchema);
+					foreach ($fakeSchema->tables as $table => $id) {
+						if (!$this->db->execute($this->db->dropSchema($fakeSchema, $table))) {
+							$this->db->rollback($fakeSchema);
 							$this->err(__d('migrations', 'Can not execute drop tables.', true));
 							return false;
 						}
 					}
-					$this->db->commit(null);
+					$this->db->commit($fakeSchema);
 				}
 			}
-			return true;
+			return __d('migrations', 'Resetted.', true);
 		}
 		return false;
 	}
@@ -157,6 +164,7 @@ class MigrationShell extends Shell {
 			if (!preg_match('/^(\d{14})_(\w+)\.php/', $file, $matches)) {
 				continue;
 			}
+			$file = $this->path . DS . $file;
 			$timestamp = $this->_dateToTimestamp($matches[1]);
 			$classname = Inflector::camelize($matches[2]);
 			$filesInfo[] = compact('file', 'timestamp', 'classname');
