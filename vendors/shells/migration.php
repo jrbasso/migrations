@@ -39,7 +39,7 @@ class MigrationShell extends Shell {
 		if (empty($this->params['path'])) {
 			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
 		} else {
-			$this->path = $this->params['path'];
+			$this->path = rtrim($this->params['path'], DS);
 		}
 
 		if (!empty($this->params['connection'])) {
@@ -126,6 +126,7 @@ class MigrationShell extends Shell {
 				$this->SchemaMigration->save(array(
 					'SchemaMigration' => array(
 						'version' => $fileInfo['timestamp'],
+						'classname' => $fileInfo['classname'],
 						'created' => time()
 					)
 				));
@@ -158,8 +159,9 @@ class MigrationShell extends Shell {
 		while (true) {
 			$cur = current($this->_versions);
 			if ($cur['SchemaMigration']['version'] > $date) {
-				$this->out(sprintf(__d('migrations', 'Executing down of version %s...', true), $cur['SchemaMigration']['version']));
-				if (!$this->_exec('uninstall', $file, $classname)) { // TODO: File? Classname? Need change db
+				$this->out(sprintf(__d('migrations', 'Executing down of version %s, class %s...', true), $cur['SchemaMigration']['version'], $cur['SchemaMigration']['classname']));
+				$file = $this->path . DS . $cur['SchemaMigration']['version'] . '_' . Inflector::underscore($cur['SchemaMigration']['classname']) . '.php';
+				if (!$this->_exec('uninstall', $file, $cur['SchemaMigration']['classname'])) {
 					$this->err(__d('migrations', 'Error in down.', true));
 					return false;
 				}
@@ -238,6 +240,10 @@ class MigrationShell extends Shell {
 	 * Check if class and action exists to execute
 	 */
 	function _exec($action, $filename, $classname) {
+		if (!is_readable($filename)) {
+			$this->err(__d('migrations', 'File "%s" can not be read. Check if exists or have permissions for your user.', true));
+			return false;
+		}
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
 		if (file_exists(APP_PATH . 'app_migration.php')) {
 			include APP_PATH . 'app_migration.php';
@@ -281,11 +287,19 @@ class MigrationShell extends Shell {
 				),
 				'version' => array(
 					'type' => 'integer',
+					'limit' => 11,
+					'null' => true,
+					'default' => NULL
+				),
+				'classname' => array(
+					'type' => 'string',
+					'length' => 128,
 					'null' => true,
 					'default' => NULL
 				),
 				'created' => array(
 					'type' => 'integer',
+					'limit' => 11,
 					'null' => true,
 					'default' => NULL
 				)
