@@ -37,7 +37,7 @@ class MigrationShell extends Shell {
 	 */
 	function startup() {
 		if (empty($this->params['path'])) {
-			$this->path = $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations';
+			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
 		} else {
 			$this->path = $this->params['path'];
 		}
@@ -49,7 +49,7 @@ class MigrationShell extends Shell {
 		$this->_startDBConfig();
 		$this->_readPathInfo();
 
-		if (preg_match("/\/plugins\/([^\/]+)\/vendors\/shells\/migration\.php$/", $this->Dispatch->shellPath, $matches)) {
+		if (preg_match("/[\/\\\]plugins[\/\\\]([^\/]+)[\/\\\]vendors[\/\\\]shells[\/\\\]migration\.php$/", $this->Dispatch->shellPath, $matches)) {
             $this->_pluginName = Inflector::camelize($matches[1]) . '.';
         }
 
@@ -238,8 +238,12 @@ class MigrationShell extends Shell {
 	 * Check if class and action exists to execute
 	 */
 	function _exec($action, $filename, $classname) {
-		// Generate $filename and $classname
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
+		if (file_exists(APP_PATH . 'app_migration.php')) {
+			include APP_PATH . 'app_migration.php';
+		} else {
+			App::import('Vendor', $this->_pluginName . 'AppMigration');
+		}
 		include $filename;
 		if (!class_exists($classname)) {
 			$this->err(sprintf(__d('migrations', 'The class %s not in file.', true), $classname));
