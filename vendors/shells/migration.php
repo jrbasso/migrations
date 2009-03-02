@@ -247,15 +247,14 @@ class MigrationShell extends Shell {
 		include $filename;
 		if (!class_exists($classname)) {
 			$this->err(sprintf(__d('migrations', 'The class %s not in file.', true), $classname));
-			$this->_stop();
+			return false;
 		}
 		$script = new $classname($this->connection);
 		if (!is_subclass_of($script, 'Migration')) {
 			$this->err(sprintf(__d('migrations', 'Class %s not extends Migration.', true), $classname));
-			$this->_stop();
+			return false;
 		}
-		$ok = $script->$action();
-		// TODO: Control for revision
+		return $script->$action();
 	}
 
 	/**
