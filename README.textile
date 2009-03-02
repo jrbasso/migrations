@@ -1,5 +1,3 @@
-h2. CakePHP Migrations
+h1. CakePHP Migrations
 
-Migrations of Ruby on Rails for CakePHP.
-
-UNDER CONSTRUCTION
+For informations, see the wiki "here":http://wiki.github.com/joaojose/migrations
