@@ -18,6 +18,11 @@ class MigrationShell extends Shell {
 	var $db = null;
 
 	/**
+	 * Last installed version
+	 */
+	var $lastVersion = 0;
+
+	/**
 	 * Schema table in database
 	 */
 	var $_schemaTable = 'schema_migrations';
@@ -42,6 +47,7 @@ class MigrationShell extends Shell {
 		}
 
 		$this->_startDBConfig();
+		$this->_readPathInfo();
 
 		if (preg_match("/\/plugins\/([^\/]+)\/vendors\/shells\/migration\.php$/", $this->Dispatch->shellPath, $matches)) {
             $this->_pluginName = Inflector::camelize($matches[1]) . '.';
@@ -51,6 +57,7 @@ class MigrationShell extends Shell {
 			$last = __d('migrations', 'Nothing installed.', true);
 		} else {
 			$last = end($this->_versions);
+			$this->lastVersion = $last['SchemaMigration']['version'];
 			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['version']);
 		}
 
@@ -99,23 +106,78 @@ class MigrationShell extends Shell {
 	 * Install or update database
 	 */
 	function up() {
-		//$this->_exec('install');
-		return false;
+		if (isset($this->args[0])) {
+			$date = $this->args[0];
+			if (!ctype_digit($date) || strlen($date) !== 14) {
+				$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
+				return false;
+			}
+		} else {
+			$date = 99999999999999; // Max in date format
+		}
+		foreach ($this->_filesInfo as $fileInfo) {
+			if ($fileInfo['timestamp'] > $this->lastVersion && $fileInfo['timestamp'] <= $date) {
+				$this->out(sprintf(__d('migrations', 'Executing file %s...', true), basename($fileInfo['file'])));
+				if (!$this->_exec('install', $fileInfo['file'], $fileInfo['classname'])) {
+					$this->err(__d('migrations', 'Can not be execute %s version.', true));
+					return false;
+				}
+				$this->SchemaMigration->create();
+				$this->SchemaMigration->save(array(
+					'SchemaMigration' => array(
+						'version' => $fileInfo['timestamp'],
+						'created' => time()
+					)
+				));
+			}
+		}
+		return __d('migrations', 'All updated.', true);
 	}
 
 	/**
 	 * Drop or downgrade database
 	 */
-	function down() {
-		//$this->_exec('uninstall');
-		return false;
+	function down($all = false) {
+		if ($this->lastVersion == 0) {
+			return __d('migration', 'No version installed.', true);
+		}
+		if ($all === true) {
+			$date = 0; // Minimal date
+		} else {
+			if (!isset($this->args[0])) {
+				$this->err(__d('migrations', 'Date is needed.', true));
+				return false;
+			}
+			$date = $this->args[0];
+			if (!ctype_digit($date) || strlen($date) !== 14) {
+				$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
+				return false;
+			}
+		}
+		end($this->_versions); // Reverse execute
+		while (true) {
+			$cur = current($this->_versions);
+			if ($cur['SchemaMigration']['version'] > $date) {
+				$this->out(sprintf(__d('migrations', 'Executing down of version %s...', true), $cur['SchemaMigration']['version']));
+				if (!$this->_exec('uninstall', $file, $classname)) { // TODO: File? Classname? Need change db
+					$this->err(__d('migrations', 'Error in down.', true));
+					return false;
+				}
+				$this->SchemaMigration->del($cur['SchemaMigration']['id']);
+				if (prev($this->_versions)) {
+					continue;
+				}
+			}
+			break;
+		}
+		return __d('migrations', 'All down.', true);
 	}
 
 	/**
 	 * Down all migrations
 	 */
 	function reset() {
-		if ($this->down()) {
+		if ($this->down(true)) {
 			if (isset($this->params['force'])) {
 				$fakeSchema = new CakeSchema();
 				$fakeSchema->tables = array_flip($this->db->listSources());
@@ -175,7 +237,7 @@ class MigrationShell extends Shell {
 	/**
 	 * Check if class and action exists to execute
 	 */
-	function _exec($action) {
+	function _exec($action, $filename, $classname) {
 		// Generate $filename and $classname
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
 		include $filename;
