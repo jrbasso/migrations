@@ -119,7 +119,7 @@ class MigrationShell extends Shell {
 			if ($fileInfo['timestamp'] > $this->lastVersion && $fileInfo['timestamp'] <= $date) {
 				$this->out(sprintf(__d('migrations', 'Executing file %s...', true), basename($fileInfo['file'])));
 				if (!$this->_exec('install', $fileInfo['file'], $fileInfo['classname'])) {
-					$this->err(__d('migrations', 'Can not be execute %s version.', true));
+					$this->err(sprintf(__d('migrations', 'Can not be execute %s (%s).', true), Inflector::camelize($fileInfo['classname']), date(__d('migrations', 'm/d/Y H:i:s', true), $fileInfo['timestamp'])));
 					return false;
 				}
 				$this->SchemaMigration->create();
@@ -160,7 +160,7 @@ class MigrationShell extends Shell {
 			$cur = current($this->_versions);
 			if ($cur['SchemaMigration']['version'] > $date) {
 				$this->out(sprintf(__d('migrations', 'Executing down of version %s, class %s...', true), $cur['SchemaMigration']['version'], $cur['SchemaMigration']['classname']));
-				$file = $this->path . DS . $cur['SchemaMigration']['version'] . '_' . Inflector::underscore($cur['SchemaMigration']['classname']) . '.php';
+				$file = $this->path . DS . date('YmdHis', $cur['SchemaMigration']['version']) . '_' . Inflector::underscore($cur['SchemaMigration']['classname']) . '.php';
 				if (!$this->_exec('uninstall', $file, $cur['SchemaMigration']['classname'])) {
 					$this->err(__d('migrations', 'Error in down.', true));
 					return false;
@@ -241,7 +241,7 @@ class MigrationShell extends Shell {
 	 */
 	function _exec($action, $filename, $classname) {
 		if (!is_readable($filename)) {
-			$this->err(__d('migrations', 'File "%s" can not be read. Check if exists or have permissions for your user.', true));
+			$this->err(sprintf(__d('migrations', 'File "%s" can not be read. Check if exists or have permissions for your user.', true), $filename));
 			return false;
 		}
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
@@ -255,7 +255,7 @@ class MigrationShell extends Shell {
 			$this->err(sprintf(__d('migrations', 'The class %s not in file.', true), $classname));
 			return false;
 		}
-		$script = new $classname($this->connection);
+		$script = new $classname($this->connection, $this);
 		if (!is_subclass_of($script, 'Migration')) {
 			$this->err(sprintf(__d('migrations', 'Class %s not extends Migration.', true), $classname));
 			return false;
