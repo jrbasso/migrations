@@ -57,16 +57,16 @@ class Migration {
      * Funçao de criaçao de tabela
      */
     function createTable($tableName, $columns, $indexes = array()) {
-		$this->_shell->out('> ' . sprintf(__d('migrations', 'Creating table "%s"... ', true), $tableName), false);
+		$this->out('> ' . sprintf(__d('migrations', 'Creating table "%s"... ', true), $tableName), false);
 		$this->__fakeSchema->tables = array($tableName => $columns);
 		if (is_array($indexes) && !empty($indexes)) {
 			$this->__fakeSchema->tables['indexes'] = $indexes;
 		}
 		if ($this->_db->execute($this->_db->createSchema($this->__fakeSchema))) {
-			$this->_shell->out('ok');
+			$this->out('ok');
 			return true;
 		}
-		$this->_shell->out('nok');
+		$this->out('nok');
 		return false;
 	}
 
@@ -79,13 +79,13 @@ class Migration {
      * Funçao de excluir tabela
      */
     function dropTable($tableName) {
-		$this->_shell->out('> ' . sprintf(__d('migrations', 'Dropping table "%s"... ', true), $tableName), false);
+		$this->out('> ' . sprintf(__d('migrations', 'Dropping table "%s"... ', true), $tableName), false);
 		$this->__fakeSchema->tables = array($tableName => '');
 		if ($this->_db->execute($this->_db->dropSchema($this->__fakeSchema, $tableName))) {
-			$this->_shell->out('ok');
+			$this->out('ok');
 			return true;
 		}
-		$this->_shell->out('nok');
+		$this->out('nok');
 		return false;
 	}
 
@@ -94,7 +94,7 @@ class Migration {
      */
     function addColumn($tableName, $columnName, $columnConfig = array()) {
 		$columnConfig = array_merge(array('type' => 'integer'), $columnConfig);
-		$this->_shell->out('> ' . sprintf(__d('migrations', 'Creating column "%s"... ', true), $columnName), false);
+		$this->out('> ' . sprintf(__d('migrations', 'Creating column "%s"... ', true), $columnName), false);
 		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'add' => array(
@@ -102,10 +102,10 @@ class Migration {
 				)
 			)
 		), $tableName))) {
-			$this->_shell->out('ok');
+			$this->out('ok');
 			return true;
 		}
-		$this->_shell->out('nok');
+		$this->out('nok');
 		return false;
 	}
 
@@ -113,7 +113,7 @@ class Migration {
      * Remover colunas
      */
     function removeColumn($tableName, $columnName) {
-		$this->_shell->out('> ' . sprintf(__d('migrations', 'Removing column "%s"... ', true), $columnName), false);
+		$this->out('> ' . sprintf(__d('migrations', 'Removing column "%s"... ', true), $columnName), false);
 		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'drop' => array(
@@ -121,10 +121,10 @@ class Migration {
 				)
 			)
 		), $tableName))) {
-			$this->_shell->out('ok');
+			$this->out('ok');
 			return true;
 		}
-		$this->_shell->out('nok');
+		$this->out('nok');
 		return false;
 	}
 
@@ -132,11 +132,11 @@ class Migration {
      * Alterar colunas
      */
     function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
-		$verbose && $this->_shell->out('> ' . sprintf(__d('migrations', 'Changing column "%s"... ', true), $columnName), false);
+		$verbose && $this->out('> ' . sprintf(__d('migrations', 'Changing column "%s"... ', true), $columnName), false);
 		if ($this->_db->isInterfaceSupported('describe')) {
 			$describe = $this->_db->describe($tableName, true);
 			if (!isset($describe[$columnName])) {
-				$verbose &&  $this->_shell->out(__d('migrations', 'column not found.', true));
+				$verbose &&  $this->out(__d('migrations', 'column not found.', true));
 				return false;
 			}
 			$newColumnConfig = array_merge($describe[$columnName], $newColumnConfig);
@@ -148,10 +148,10 @@ class Migration {
 				)
 			)
 		), $tableName))) {
-			$verbose && $this->_shell->out('ok');
+			$verbose && $this->out('ok');
 			return true;
 		}
-		$verbose && $this->_shell->out('nok');
+		$verbose && $this->out('nok');
 		return false;
 	}
 
@@ -159,12 +159,12 @@ class Migration {
      * Renomear colunas
      */
     function renameColumn($tableName, $oldColumnName, $newColumnName) {
-		$this->_shell->out('> ' . sprintf(__d('migrations', 'Renaming column "%s" to "%s"...', true), $oldColumnName, $newColumnName), false);
+		$this->out('> ' . sprintf(__d('migrations', 'Renaming column "%s" to "%s"...', true), $oldColumnName, $newColumnName), false);
 		if ($this->changeColumn($tableName, $oldColumnName, array('name' => $newColumnName), false)) {
-			$this->_shell->out('ok');
+			$this->out('ok');
 			return true;
 		}
-		$this->_shell->out('nok');
+		$this->out('nok');
 		return false;
 	}
 
@@ -176,6 +176,13 @@ class Migration {
      * Remover Index
      */
     function removeIndex(){}
+
+	/**
+	 * Output a message to console
+	 */
+	function out($message, $newLine = true) {
+		$this->_shell->out('> ' . $message, $newLine);
+	}
 
 	/**
 	 * Install revision
