@@ -24,6 +24,7 @@ class Migration {
 	 */
 	function __construct($connection = 'default', &$shell = null) {
 		$this->db =& ConnectionManager::getDataSource($connection);
+		$this->db->cacheSources = false;
 		$this->__fakeSchema = new CakeSchema();
 		$this->_shell =& $shell;
 	}
@@ -67,19 +68,82 @@ class Migration {
     /**
      * Adicionar colunas
      */
-    function addColumn(){}
+    function addColumn($tableName, $columnName, $columnConfig = array()) {
+		$columnConfig = array_merge(array('type' => 'integer'), $columnConfig);
+		$this->_shell->out('> ' . sprintf(__d('migrations', 'Creating column "%s"... ', true), $columnName), false);
+		if ($this->db->execute($this->db->alterSchema(array(
+			$tableName => array(
+				'add' => array(
+					$columnName => $columnConfig
+				)
+			)
+		), $tableName))) {
+			$this->_shell->out('ok');
+			return true;
+		}
+		$this->_shell->out('nok');
+		return false;
+	}
+
     /**
      * Remover colunas
      */
-    function removeColumn(){}
+    function removeColumn($tableName, $columnName) {
+		$this->_shell->out('> ' . sprintf(__d('migrations', 'Removing column "%s"... ', true), $columnName), false);
+		if ($this->db->execute($this->db->alterSchema(array(
+			$tableName => array(
+				'drop' => array(
+					$columnName => array()
+				)
+			)
+		), $tableName))) {
+			$this->_shell->out('ok');
+			return true;
+		}
+		$this->_shell->out('nok');
+		return false;
+	}
+
     /**
      * Alterar colunas
      */
-    function changeColumn(){}
+    function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
+		$verbose && $this->_shell->out('> ' . sprintf(__d('migrations', 'Changing column "%s"... ', true), $columnName), false);
+		if ($this->db->isInterfaceSupported('describe')) {
+			$describe = $this->db->describe($tableName, true);
+			if (!isset($describe[$columnName])) {
+				$verbose &&  $this->_shell->out(__d('migrations', 'column not found.', true));
+				return false;
+			}
+			$newColumnConfig = array_merge($describe[$columnName], $newColumnConfig);
+		}
+		if ($this->db->execute($this->db->alterSchema(array(
+			$tableName => array(
+				'change' => array(
+					$columnName => $newColumnConfig
+				)
+			)
+		), $tableName))) {
+			$verbose && $this->_shell->out('ok');
+			return true;
+		}
+		$verbose && $this->_shell->out('nok');
+		return false;
+	}
+
     /**
      * Renomear colunas
      */
-    function renameColumn(){}
+    function renameColumn($tableName, $oldColumnName, $newColumnName) {
+		$this->_shell->out('> ' . sprintf(__d('migrations', 'Renaming column "%s" to "%s"...', true), $oldColumnName, $newColumnName), false);
+		if ($this->changeColumn($tableName, $oldColumnName, array('name' => $newColumnName), false)) {
+			$this->_shell->out('ok');
+			return true;
+		}
+		$this->_shell->out('nok');
+		return false;
+	}
+
     /**
      * Adicionar Index
      */
