@@ -112,8 +112,9 @@ class MigrationShell extends Shell {
 				$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
 				return false;
 			}
+			$date = $this->_dateToTimestamp($date);
 		} else {
-			$date = 99999999999999; // Max in date format
+			$date = time(); // Now...
 		}
 		foreach ($this->_filesInfo as $fileInfo) {
 			if ($fileInfo['timestamp'] > $this->lastVersion && $fileInfo['timestamp'] <= $date) {
@@ -154,12 +155,13 @@ class MigrationShell extends Shell {
 				$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
 				return false;
 			}
+			$date = $this->_dateToTimestamp($date);
 		}
 		end($this->_versions); // Reverse execute
 		while (true) {
 			$cur = current($this->_versions);
 			if ($cur['SchemaMigration']['version'] > $date) {
-				$this->out(sprintf(__d('migrations', 'Executing down of version %s, class %s...', true), $cur['SchemaMigration']['version'], $cur['SchemaMigration']['classname']));
+				$this->out(sprintf(__d('migrations', 'Executing down of %s (%s)...', true), $cur['SchemaMigration']['classname'], date(__d('migrations', 'm/d/Y H:i:s', true), $cur['SchemaMigration']['version'])));
 				$file = $this->path . DS . date('YmdHis', $cur['SchemaMigration']['version']) . '_' . Inflector::underscore($cur['SchemaMigration']['classname']) . '.php';
 				if (!$this->_exec('uninstall', $file, $cur['SchemaMigration']['classname'])) {
 					$this->err(__d('migrations', 'Error in down.', true));
