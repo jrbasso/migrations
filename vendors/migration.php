@@ -5,9 +5,14 @@
 class Migration {
 
 	/**
+	 * Uses models
+	 */
+	var $uses = array();
+
+	/**
 	 * DataSource link
 	 */
-	var $db = null;
+	var $_db = null;
 
 	/**
 	 * Schell that called this class
@@ -23,10 +28,29 @@ class Migration {
 	 * Constructor
 	 */
 	function __construct($connection = 'default', &$shell = null) {
-		$this->db =& ConnectionManager::getDataSource($connection);
-		$this->db->cacheSources = false;
-		$this->__fakeSchema = new CakeSchema();
+		$this->_db =& ConnectionManager::getDataSource($connection);
+		$this->_db->cacheSources = false;
 		$this->_shell =& $shell;
+		$this->__fakeSchema = new CakeSchema();
+
+		// Uses
+		$uses = get_class_vars('AppMigration');
+		$uses = $uses['uses'];
+		if (!is_array($this->uses)) {
+			$this->uses = array($this->uses);
+		}
+		$uses = array_unique(array_merge($uses, $this->uses));
+		foreach ($uses as $use) {
+			if (!PHP5) {
+				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+			} else {
+				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+			}
+			if (!$this->{$use}) {
+				$this->_shell->err(sprintf(__d('migrations', 'Model "%s" not exists.', true), $use));
+				exit();
+			}
+		}
 	}
 
     /**
@@ -38,7 +62,7 @@ class Migration {
 		if (is_array($indexes) && !empty($indexes)) {
 			$this->__fakeSchema->tables['indexes'] = $indexes;
 		}
-		if ($this->db->execute($this->db->createSchema($this->__fakeSchema))) {
+		if ($this->_db->execute($this->_db->createSchema($this->__fakeSchema))) {
 			$this->_shell->out('ok');
 			return true;
 		}
@@ -57,7 +81,7 @@ class Migration {
     function dropTable($tableName) {
 		$this->_shell->out('> ' . sprintf(__d('migrations', 'Dropping table "%s"... ', true), $tableName), false);
 		$this->__fakeSchema->tables = array($tableName => '');
-		if ($this->db->execute($this->db->dropSchema($this->__fakeSchema, $tableName))) {
+		if ($this->_db->execute($this->_db->dropSchema($this->__fakeSchema, $tableName))) {
 			$this->_shell->out('ok');
 			return true;
 		}
@@ -71,7 +95,7 @@ class Migration {
     function addColumn($tableName, $columnName, $columnConfig = array()) {
 		$columnConfig = array_merge(array('type' => 'integer'), $columnConfig);
 		$this->_shell->out('> ' . sprintf(__d('migrations', 'Creating column "%s"... ', true), $columnName), false);
-		if ($this->db->execute($this->db->alterSchema(array(
+		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'add' => array(
 					$columnName => $columnConfig
@@ -90,7 +114,7 @@ class Migration {
      */
     function removeColumn($tableName, $columnName) {
 		$this->_shell->out('> ' . sprintf(__d('migrations', 'Removing column "%s"... ', true), $columnName), false);
-		if ($this->db->execute($this->db->alterSchema(array(
+		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'drop' => array(
 					$columnName => array()
@@ -109,15 +133,15 @@ class Migration {
      */
     function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
 		$verbose && $this->_shell->out('> ' . sprintf(__d('migrations', 'Changing column "%s"... ', true), $columnName), false);
-		if ($this->db->isInterfaceSupported('describe')) {
-			$describe = $this->db->describe($tableName, true);
+		if ($this->_db->isInterfaceSupported('describe')) {
+			$describe = $this->_db->describe($tableName, true);
 			if (!isset($describe[$columnName])) {
 				$verbose &&  $this->_shell->out(__d('migrations', 'column not found.', true));
 				return false;
 			}
 			$newColumnConfig = array_merge($describe[$columnName], $newColumnConfig);
 		}
-		if ($this->db->execute($this->db->alterSchema(array(
+		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'change' => array(
 					$columnName => $newColumnConfig
@@ -178,12 +202,12 @@ class Migration {
 		}
 		$ok = true;
 		if (method_exists($this, $command)) {
-			$this->db->begin($this->__fakeSchema);
+			$this->_db->begin($this->__fakeSchema);
 			if (!$this->$command()) {
-				$this->db->rollback($this->__fakeSchema);
+				$this->_db->rollback($this->__fakeSchema);
 				$ok = false;
 			} else {
-				$this->db->commit($this->__fakeSchema);
+				$this->_db->commit($this->__fakeSchema);
 			}
 		}
 		$method = 'after' . $callback;
