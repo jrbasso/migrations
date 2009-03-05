@@ -36,6 +36,9 @@ class Migration {
 		// Uses
 		$uses = get_class_vars('AppMigration');
 		$uses = $uses['uses'];
+		if (!is_array($uses)) {
+			$uses = array();
+		}
 		if (!is_array($this->uses)) {
 			$this->uses = array($this->uses);
 		}
@@ -191,7 +194,9 @@ class Migration {
 	 * Output a message to console
 	 */
 	function out($message, $newLine = true) {
-		$this->_shell->out($message, $newLine);
+		if ($this->_shell) {
+			$this->_shell->out($message, $newLine);
+		}
 	}
 
 	/**

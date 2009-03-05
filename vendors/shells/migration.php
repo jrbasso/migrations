@@ -183,21 +183,23 @@ class MigrationShell extends Shell {
 	function reset() {
 		if ($this->down(true)) {
 			if (isset($this->params['force'])) {
-				$fakeSchema = new CakeSchema();
-				$fakeSchema->tables = array_flip($this->db->listSources());
-				if (isset($fakeSchema->tables[$this->_schemaTable])) {
-					unset($fakeSchema->tables[$this->_schemaTable]);
-				}
-				if (!empty($fakeSchema->tables)) {
-					$this->db->begin($fakeSchema);
-					foreach ($fakeSchema->tables as $table => $id) {
-						if (!$this->db->execute($this->db->dropSchema($fakeSchema, $table))) {
-							$this->db->rollback($fakeSchema);
-							$this->err(__d('migrations', 'Can not execute drop tables.', true));
+				App::import('Vendor', $this->_pluginName . 'Migration');
+				$migration = new Migration($this->connection, $this);
+
+				$tables = $this->db->listSources();
+				if (!empty($tables)) {
+					$this->db->begin($migration);
+					foreach ($tables as $table) {
+						if ($table == $this->_schemaTable) {
+							continue;
+						}
+						if (!$migration->dropTable($table)) {
+							$this->db->rollback($migration);
+							$this->err(__d('migrations', 'Can not execute drop of all tables.', true));
 							return false;
 						}
 					}
-					$this->db->commit($fakeSchema);
+					$this->db->commit($migration);
 				}
 			}
 			return __d('migrations', 'Resetted.', true);
