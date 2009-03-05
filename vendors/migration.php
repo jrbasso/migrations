@@ -53,6 +53,16 @@ class Migration {
 		}
 	}
 
+	/**
+	 * Pega o model relativo a tabela
+	 */
+	function getModel($tableName) {
+		if (!in_array($tableName, $this->_db->listSources())) {
+			return null;
+		}
+		return new Model(array('name' => Inflector::camelize(Inflector::singularize($tableName)), 'table' => $tableName, 'ds' => $this->_db->configKeyName));
+	}
+
     /**
      * Funçao de criaçao de tabela
      */
@@ -181,7 +191,7 @@ class Migration {
 	 * Output a message to console
 	 */
 	function out($message, $newLine = true) {
-		$this->_shell->out('> ' . $message, $newLine);
+		$this->_shell->out($message, $newLine);
 	}
 
 	/**
