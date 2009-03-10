@@ -50,7 +50,7 @@ class Migration {
 				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
 			}
 			if (!$this->{$use}) {
-				$this->_shell->err(sprintf(__d('migrations', 'Model "%s" not exists.', true), $use));
+				$this->_shell->err(String::insert(__d('migrations', 'Model ":model" not exists.', true), array('model' => $use)));
 				exit();
 			}
 		}
@@ -70,7 +70,7 @@ class Migration {
      * Funçao de criaçao de tabela
      */
     function createTable($tableName, $columns, $indexes = array()) {
-		$this->out('> ' . sprintf(__d('migrations', 'Creating table "%s"... ', true), $tableName), false);
+		$this->out('> ' . String::insert(__d('migrations', 'Creating table ":table"... ', true), array('table' => $tableName)), false);
 		$this->__fakeSchema->tables = array($tableName => $columns);
 		if (is_array($indexes) && !empty($indexes)) {
 			$this->__fakeSchema->tables['indexes'] = $indexes;
@@ -92,7 +92,7 @@ class Migration {
      * Funçao de excluir tabela
      */
     function dropTable($tableName) {
-		$this->out('> ' . sprintf(__d('migrations', 'Dropping table "%s"... ', true), $tableName), false);
+		$this->out('> ' . String::insert(__d('migrations', 'Dropping table ":table"... ', true), array('table' => $tableName)), false);
 		$this->__fakeSchema->tables = array($tableName => '');
 		if ($this->_db->execute($this->_db->dropSchema($this->__fakeSchema, $tableName))) {
 			$this->out('ok');
@@ -107,7 +107,7 @@ class Migration {
      */
     function addColumn($tableName, $columnName, $columnConfig = array()) {
 		$columnConfig = array_merge(array('type' => 'integer'), $columnConfig);
-		$this->out('> ' . sprintf(__d('migrations', 'Creating column "%s"... ', true), $columnName), false);
+		$this->out('> ' . String::insert(__d('migrations', 'Creating column ":column"... ', true), array('column' => $columnName)), false);
 		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'add' => array(
@@ -126,7 +126,7 @@ class Migration {
      * Remover colunas
      */
     function removeColumn($tableName, $columnName) {
-		$this->out('> ' . sprintf(__d('migrations', 'Removing column "%s"... ', true), $columnName), false);
+		$this->out('> ' . String::insert(__d('migrations', 'Removing column ":column"... ', true), array('column' => $columnName)), false);
 		if ($this->_db->execute($this->_db->alterSchema(array(
 			$tableName => array(
 				'drop' => array(
@@ -145,7 +145,7 @@ class Migration {
      * Alterar colunas
      */
     function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
-		$verbose && $this->out('> ' . sprintf(__d('migrations', 'Changing column "%s"... ', true), $columnName), false);
+		$verbose && $this->out('> ' . String::insert(__d('migrations', 'Changing column ":column"... ', true), array('column' => $columnName)), false);
 		if ($this->_db->isInterfaceSupported('describe')) {
 			$describe = $this->_db->describe($tableName, true);
 			if (!isset($describe[$columnName])) {
@@ -172,7 +172,7 @@ class Migration {
      * Renomear colunas
      */
     function renameColumn($tableName, $oldColumnName, $newColumnName) {
-		$this->out('> ' . sprintf(__d('migrations', 'Renaming column "%s" to "%s"...', true), $oldColumnName, $newColumnName), false);
+		$this->out('> ' . String::insert(__d('migrations', 'Renaming column ":old" to ":new"...', true), array('old' => $oldColumnName, 'new' => $newColumnName)), false);
 		if ($this->changeColumn($tableName, $oldColumnName, array('name' => $newColumnName), false)) {
 			$this->out('ok');
 			return true;

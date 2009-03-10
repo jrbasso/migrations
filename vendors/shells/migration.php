@@ -64,9 +64,9 @@ class MigrationShell extends Shell {
 		parent::startup();
 		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
-		$this->out(sprintf(__d('migrations', 'Path to migrations classes: %s', true), $this->path));
-		$this->out(sprintf(__d('migrations', 'Connection to the database: %s', true), $this->connection));
-		$this->out(sprintf(__d('migrations', 'Last migration installed: %s', true), $last));
+		$this->out(String::insert(__d('migrations', 'Path to migrations classes: :path', true), array('path' => $this->path)));
+		$this->out(String::insert(__d('migrations', 'Connection to the database: :connection', true), array('connection' => $this->connection)));
+		$this->out(String::insert(__d('migrations', 'Last migration installed: :date', true), array('date' => $last)));
 		$this->hr();
 	}
 
@@ -118,9 +118,9 @@ class MigrationShell extends Shell {
 		}
 		foreach ($this->_filesInfo as $fileInfo) {
 			if ($fileInfo['timestamp'] > $this->lastVersion && $fileInfo['timestamp'] <= $date) {
-				$this->out(sprintf(__d('migrations', 'Executing file %s...', true), basename($fileInfo['file'])));
+				$this->out(String::insert(__d('migrations', 'Executing file :file...', true), array('file' => basename($fileInfo['file']))));
 				if (!$this->_exec('install', $fileInfo['file'], $fileInfo['classname'])) {
-					$this->err(sprintf(__d('migrations', 'Can not be execute %s (%s).', true), Inflector::camelize($fileInfo['classname']), date(__d('migrations', 'm/d/Y H:i:s', true), $fileInfo['timestamp'])));
+					$this->err(String::insert(__d('migrations', 'Can not be execute :class (:date).', true), array('class' => Inflector::camelize($fileInfo['classname']), 'date' => date(__d('migrations', 'm/d/Y H:i:s', true), $fileInfo['timestamp']))));
 					return false;
 				}
 				$this->SchemaMigration->create();
