@@ -216,6 +216,10 @@ class Migration {
 	 * Execute Install and Uninstall methods
 	 */
 	function _exec($command, $callback) {
+		if (!method_exists($this, $command)) {
+			$this->out(String::insert(__d('migrations', '> Method ":method" not implemented. Skipping...', true), array('method' => $command)));
+			return true;
+		}
 		$method = 'before' . $callback;
 		if (method_exists($this, $method)) {
 			if (!$this->$method()) {
@@ -223,14 +227,12 @@ class Migration {
 			}
 		}
 		$ok = true;
-		if (method_exists($this, $command)) {
-			$this->_db->begin($this->__fakeSchema);
-			if (!$this->$command()) {
-				$this->_db->rollback($this->__fakeSchema);
-				$ok = false;
-			} else {
-				$this->_db->commit($this->__fakeSchema);
-			}
+		$this->_db->begin($this->__fakeSchema);
+		if (!$this->$command()) {
+			$this->_db->rollback($this->__fakeSchema);
+			$ok = false;
+		} else {
+			$this->_db->commit($this->__fakeSchema);
 		}
 		$method = 'after' . $callback;
 		if (method_exists($this, $method)) {
