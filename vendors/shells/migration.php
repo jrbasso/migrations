@@ -50,8 +50,8 @@ class MigrationShell extends Shell {
 		$this->_readPathInfo();
 
 		if (preg_match("/[\/\\\]plugins[\/\\\]([^\/]+)[\/\\\]vendors[\/\\\]shells[\/\\\]migration\.php$/", $this->Dispatch->shellPath, $matches)) {
-            $this->_pluginName = Inflector::camelize($matches[1]) . '.';
-        }
+			$this->_pluginName = Inflector::camelize($matches[1]) . '.';
+		}
 
 		if (empty($this->_versions)) {
 			$last = __d('migrations', 'Nothing installed.', true);
@@ -161,7 +161,15 @@ class MigrationShell extends Shell {
 		while (true) {
 			$cur = current($this->_versions);
 			if ($cur['SchemaMigration']['version'] > $date) {
-				$this->out(sprintf(__d('migrations', 'Executing down of %s (%s)...', true), $cur['SchemaMigration']['classname'], date(__d('migrations', 'm/d/Y H:i:s', true), $cur['SchemaMigration']['version'])));
+				$this->out(
+					String::insert(__d('migrations',
+						'Executing down of :migration (:date)...', true),
+						array (
+						       'migration' => $cur['SchemaMigration']['classname'],
+						       'date' => date(__d('migrations', 'm/d/Y H:i:s', true), $cur['SchemaMigration']['version'])
+						)
+					)
+				);
 				$file = $this->path . DS . date('YmdHis', $cur['SchemaMigration']['version']) . '_' . Inflector::underscore($cur['SchemaMigration']['classname']) . '.php';
 				if (!$this->_exec('uninstall', $file, $cur['SchemaMigration']['classname'])) {
 					$this->err(__d('migrations', 'Error in down.', true));
@@ -213,6 +221,48 @@ class MigrationShell extends Shell {
 	function rebuild() {
 		return $this->reset() && $this->up();
 	}
+	
+	/**
+	 * Create template
+	 */
+	function create(){
+		if (empty($this->args[0]) || !is_string($this->args[0])){
+			$this->err(__d('migrations', 'Let me know the name of migration ...', true));
+			$this->_stop();
+		}
+		if (!empty($this->params['template'])) {
+			$this->_template = $this->params['template'];
+			if (!file_exists($this->_template)){
+				$this->err(__d('migrations','I did not find that your template ...',true));
+				$this->_stop();
+			}
+		}
+		else {
+			// Refact later
+			$plugin = low(array_shift(explode('.',$this->_pluginName)));
+			// End 
+			$this->_template = APP_PATH.'plugins'.DS.$plugin.DS.'vendors'.DS.'shells'.DS.'templates'.DS.'single_template.php';
+		}
+		App::import('Core','File');
+		$strings = array (
+			'niceName' => $this->args[0],
+			'date' => date(__d('migrations','m/d/Y H:i:s',true))
+		);
+		$template = new File($this->_template);
+		$filename = $this->path.DS.date('YmdHis').'_'.Inflector::underscore($this->args[0]).'.php';
+		var_dump($filename);
+		$file = new File($filename, true);
+		if (!$file->write(String::insert($template->read(), $strings))){
+			$this->err(__d('migrations','Oops, did not write the migration!',true));
+			$this->_stop();
+		}
+		$this->out(__d('migrations','Migration created successfully!', true));
+		$this->out(__d('migrations','Go and update the method UP and DOWN', true));
+		$this->out(String::insert(
+			__d('migrations','The file is in: :file', true),
+			array('file'=> $filename)
+		));
+	}
 
 	/**
 	 * Read path info
@@ -224,6 +274,11 @@ class MigrationShell extends Shell {
 		$folder = new Folder();
 		if (!$folder->cd($this->path)) {
 			$this->err(__d('migrations', 'Specified path does not exist.', true));
+			$this->out(String::insert(
+					__d('migrations', 'Creates the following directory: :path',true),
+					array('path'=>APP_PATH.'config'.DS.'sql'.DS.'migrations')
+				)
+			);
 			$this->_stop();
 		}
 		$read = $folder->read();
@@ -245,7 +300,7 @@ class MigrationShell extends Shell {
 	 */
 	function _exec($action, $filename, $classname) {
 		if (!is_readable($filename)) {
-			$this->err(sprintf(__d('migrations', 'File "%s" can not be read. Check if exists or have permissions for your user.', true), $filename));
+			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have permissions for your user.', true), array('file'=>$filename)));
 			return false;
 		}
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
@@ -256,12 +311,12 @@ class MigrationShell extends Shell {
 		}
 		include $filename;
 		if (!class_exists($classname)) {
-			$this->err(sprintf(__d('migrations', 'The class %s not in file.', true), $classname));
+			$this->err(String::insert(__d('migrations', 'The class :classname not in file.', true), array('classname'=>$classname)));
 			return false;
 		}
 		$script = new $classname($this->connection, $this);
 		if (!is_subclass_of($script, 'Migration')) {
-			$this->err(sprintf(__d('migrations', 'Class %s not extends Migration.', true), $classname));
+			$this->err(String::insert(__d('migrations', 'Class :classname not extends Migration.', true), array('classname'=>$classname)));
 			return false;
 		}
 		return $script->$action();
@@ -310,7 +365,7 @@ class MigrationShell extends Shell {
 			)
 		);
 		if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
-			$this->err(sprintf(__d('migrations', 'Schema table "%s" can not be created.', true), $this->_schemaTable));
+			$this->err(String::insert(__d('migrations', 'Schema table ":tablename" can not be created.', true), array('tablename'=>$this->_schemaTable)));
 			$this->_stop();
 		}
 	}
