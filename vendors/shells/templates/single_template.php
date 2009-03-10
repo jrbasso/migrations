@@ -4,7 +4,7 @@
  * :date
  * 
  */
-class :niceName extends Migration {
+class :niceName extends AppMigration {
     /* up method */
     function up(){
         // do something!
