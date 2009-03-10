@@ -230,27 +230,26 @@ class MigrationShell extends Shell {
 			$this->err(__d('migrations', 'Let me know the name of migration ...', true));
 			$this->_stop();
 		}
+		$templateDir = dirname(__FILE__) . DS . 'templates' . DS;
 		if (!empty($this->params['template'])) {
 			$this->_template = $this->params['template'];
 			if (!file_exists($this->_template)){
-				$this->err(__d('migrations','I did not find that your template ...',true));
-				$this->_stop();
+				$this->_template = $templatedir . $this->_template;
+				if (!file_exists($this->_template)) {
+					$this->err(__d('migrations','I did not find that your template ...',true));
+					$this->_stop();
+				}
 			}
-		}
-		else {
-			// Refact later
-			$plugin = low(array_shift(explode('.',$this->_pluginName)));
-			// End 
-			$this->_template = APP_PATH.'plugins'.DS.$plugin.DS.'vendors'.DS.'shells'.DS.'templates'.DS.'single_template.php';
+		} else {
+			$this->_template = $templateDir . 'single_template.php';
 		}
 		App::import('Core','File');
 		$strings = array (
-			'niceName' => $this->args[0],
+			'niceName' => Inflector::camelize($this->args[0]),
 			'date' => date(__d('migrations','m/d/Y H:i:s',true))
 		);
 		$template = new File($this->_template);
 		$filename = $this->path.DS.date('YmdHis').'_'.Inflector::underscore($this->args[0]).'.php';
-		var_dump($filename);
 		$file = new File($filename, true);
 		if (!$file->write(String::insert($template->read(), $strings))){
 			$this->err(__d('migrations','Oops, did not write the migration!',true));
@@ -376,17 +375,21 @@ class MigrationShell extends Shell {
 	function help() {
 		$this->out(__d('migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
-		$this->out(sprintf(__d('migrations',
+		$this->out(String::insert(__d('migrations',
 "Params:
 	-connection <config>
 		set db config <config>. Uses 'default' if none is specified.
 	-path <dir>
 		path <dir> to read and write migrations scripts.
-		default path: %s", true), $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations'));
+		default path: :path", true),
+		array ('path' => $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations')));
+
 		$this->out(__d('migrations', 
 "Commands:
 	migration help
 		shows this help message.
+	migrations create <name>
+		create a migration script.
 	migration up [date]
 		upgrade database to specified date. If the date is not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.
 	migration down <date>
@@ -395,6 +398,7 @@ class MigrationShell extends Shell {
 		execute down of all migrations. If param -force is used, this will drop all tables in database that exist.
 	migration rebuild
 		execute a reset an up actions. Param -force can be used.", true));
+
 	}
 
 }
