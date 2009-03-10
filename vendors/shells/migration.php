@@ -299,7 +299,7 @@ class MigrationShell extends Shell {
 	 */
 	function _exec($action, $filename, $classname) {
 		if (!is_readable($filename)) {
-			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have permissions for your user.', true), array('file'=>$filename)));
+			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have privileges for your user.', true), array('file'=>$filename)));
 			return false;
 		}
 		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
