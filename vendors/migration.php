@@ -37,12 +37,29 @@ class Migration {
 	/**
 	 * Constructor
 	 */
-	function __construct($connection = 'default', &$shell = null) {
-		$this->_db =& ConnectionManager::getDataSource($connection);
-		$this->_db->cacheSources = false;
+	function __construct( &$shell = null) {
 		$this->_shell =& $shell;
+		$this->_db =& $shell->db;
 		$this->__fakeSchema = new CakeSchema();
-
+		
+		$uses = $this->_getUses();
+		
+		foreach ($uses as $use) {
+			if (!PHP5) {
+				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+			} else {
+				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+			}
+			if (!$this->{$use}) {
+				$this->_shell->err(String::insert(
+					__d('migrations', 'Model ":model" not exists.', true),
+					array('model' => $use)
+				));
+				$this->_shell->_stop();
+			}
+		}
+	}
+	function _getUses(){
 		// Uses
 		$uses = get_class_vars('AppMigration');
 		$uses = $uses['uses'];
@@ -52,20 +69,8 @@ class Migration {
 		if (!is_array($this->uses)) {
 			$this->uses = array($this->uses);
 		}
-		$uses = array_unique(array_merge($uses, $this->uses));
-		foreach ($uses as $use) {
-			if (!PHP5) {
-				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
-			} else {
-				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
-			}
-			if (!$this->{$use}) {
-				$this->_shell->err(String::insert(__d('migrations', 'Model ":model" not exists.', true), array('model' => $use)));
-				exit();
-			}
-		}
+		return array_unique(array_merge($uses, $this->uses));
 	}
-
 	/**
 	 * Pega o model relativo a tabela
 	 */
@@ -83,7 +88,17 @@ class Migration {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
-		$this->out('> ' . String::insert(__d('migrations', 'Creating table ":table"... ', true), array('table' => $tableName)), false);
+		
+		$columns = am ($columns, array(
+			'id'=> array('type'=>'integer', 'null' => false, 'default' => NULL, 'key' => 'primary'),
+			'created'=> array('type'=>'datetime', 'null' => false, 'default' => NULL),
+			'modified' => array('type'=>'datetime', 'null' => false, 'default' => NULL)
+		));
+		
+		$this->out('> ' . String::insert(
+			__d('migrations', 'Creating table ":table"... ', true),
+			array('table' => $tableName)
+		), false);
 		$this->__fakeSchema->tables = array($tableName => $columns);
 		if (is_array($indexes) && !empty($indexes)) {
 			$this->__fakeSchema->tables['indexes'] = $indexes;

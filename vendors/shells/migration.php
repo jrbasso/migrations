@@ -78,12 +78,23 @@ class MigrationShell extends Shell {
 			$this->lastVersion = $last['SchemaMigration']['version'];
 			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['version']);
 		}
+		
 		parent::startup();
+		
 		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
-		$this->out(String::insert(__d('migrations', 'Path to migrations classes: :path', true), array('path' => $this->path)));
-		$this->out(String::insert(__d('migrations', 'Connection to the database: :connection', true), array('connection' => $this->connection)));
-		$this->out(String::insert(__d('migrations', 'Last migration installed: :date', true), array('date' => $last)));
+		$this->out(String::insert(
+			__d('migrations', 'Path to migrations classes: :path', true),
+			array('path' => $this->path)
+		));
+		$this->out(String::insert(
+			__d('migrations', 'Connection to the database: :connection', true),
+			array('connection' => $this->connection)
+		));
+		$this->out(String::insert(
+			__d('migrations', 'Last migration installed: :date', true),
+			array('date' => $last)
+		));
 		$this->hr();
 	}
 	function _paramsParsing(){
@@ -343,7 +354,7 @@ class MigrationShell extends Shell {
 			$this->err(String::insert(__d('migrations', 'The class :classname not in file.', true), array('classname'=>$classname)));
 			return false;
 		}
-		$script = new $classname($this->connection, $this);
+		$script = new $classname($this);
 		if (!is_subclass_of($script, 'Migration')) {
 			$this->err(String::insert(__d('migrations', 'Class :classname not extends Migration.', true), array('classname'=>$classname)));
 			return false;
