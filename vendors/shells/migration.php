@@ -28,6 +28,36 @@ class MigrationShell extends Shell {
 	var $_schemaTable = 'schema_migrations';
 
 	/**
+	 * Schema structure
+	 */
+	var $_schemaStructure = array(
+		'id' => array(
+			'type' => 'integer',
+			'null' => false,
+			'default' => NULL,
+			'key' => 'primary'
+		),
+		'version' => array(
+			'type' => 'integer',
+			'limit' => 11,
+			'null' => true,
+			'default' => NULL
+		),
+		'classname' => array(
+			'type' => 'string',
+			'length' => 128,
+			'null' => true,
+			'default' => NULL
+		),
+		'created' => array(
+			'type' => 'integer',
+			'limit' => 11,
+			'null' => true,
+			'default' => NULL
+		)
+	);
+
+	/**
 	 * Name of plugin directory
 	 */
 	var $_pluginName = null;
@@ -88,8 +118,10 @@ class MigrationShell extends Shell {
 		if (!is_array($sources)) { // Database connection error
 			$this->_stop();
 		}
-		if (!in_array($this->_schemaTable, $sources)) { // Create table if not exists
+		if (!in_array($this->_schemaTable, $sources)) { // Create schemaTable if not exist
 			$this->__createTable();
+		} else {
+			$this->__checkTable(); // If exist, check the structure
 		}
 		$this->SchemaMigration = new Model(array('name' => 'SchemaMigration', 'table' => $this->_schemaTable, 'ds' => $this->connection));
 		$this->_versions = $this->SchemaMigration->find('all', array('order' => array('SchemaMigration.version' => 'ASC')));
@@ -335,38 +367,31 @@ class MigrationShell extends Shell {
 	 */
 	function __createTable() {
 		$fakeSchema = new CakeSchema();
-		$fakeSchema->tables = array(
-			$this->_schemaTable => array(
-				'id' => array(
-					'type' => 'integer',
-					'null' => false,
-					'default' => NULL,
-					'key' => 'primary'
-				),
-				'version' => array(
-					'type' => 'integer',
-					'limit' => 11,
-					'null' => true,
-					'default' => NULL
-				),
-				'classname' => array(
-					'type' => 'string',
-					'length' => 128,
-					'null' => true,
-					'default' => NULL
-				),
-				'created' => array(
-					'type' => 'integer',
-					'limit' => 11,
-					'null' => true,
-					'default' => NULL
-				)
-			)
-		);
+		$fakeSchema->tables = array($this->_schemaTable => $this->_schemaStructure);
 		if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
 			$this->err(String::insert(__d('migrations', 'Schema table ":tablename" can not be created.', true), array('tablename'=>$this->_schemaTable)));
 			$this->_stop();
 		}
+	}
+
+	function __checkTable() {
+		$describe = $this->db->describe($this->_schemaTable);
+		if (array_keys($describe) == array_keys($this->_schemaStructure)) { // Chaves iguais
+			$ok = true;
+			foreach ($this->_schemaStructure as $key => $structure) {
+				if ($structure['type'] != $describe[$key]['type']) {
+					$ok = false;
+					break;
+				}
+			}
+			if ($ok) {
+				return;
+			}
+		}
+		$fakeSchema = new CakeSchema();
+		$fakeSchema->tables = array($this->_schemaTable => '');
+		$this->db->execute($this->db->dropSchema($fakeSchema, $this->_schemaTable));
+		$this->__createTable();
 	}
 
 	/**
