@@ -66,22 +66,10 @@ class MigrationShell extends Shell {
 	 * Startup script
 	 */
 	function startup() {
-		if (empty($this->params['path'])) {
-			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
-		} else {
-			$this->path = rtrim($this->params['path'], DS);
-		}
-
-		if (!empty($this->params['connection'])) {
-			$this->connection = $this->params['connection'];
-		}
-
+		$this->_paramsParsing();
+		
 		$this->_startDBConfig();
 		$this->_readPathInfo();
-
-		if (preg_match("/[\/\\\]plugins[\/\\\]([^\/]+)[\/\\\]vendors[\/\\\]shells[\/\\\]migration\.php$/", $this->Dispatch->shellPath, $matches)) {
-			$this->_pluginName = Inflector::camelize($matches[1]) . '.';
-		}
 
 		if (empty($this->_versions)) {
 			$last = __d('migrations', 'Nothing installed.', true);
@@ -90,7 +78,6 @@ class MigrationShell extends Shell {
 			$this->lastVersion = $last['SchemaMigration']['version'];
 			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['version']);
 		}
-
 		parent::startup();
 		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
@@ -99,13 +86,23 @@ class MigrationShell extends Shell {
 		$this->out(String::insert(__d('migrations', 'Last migration installed: :date', true), array('date' => $last)));
 		$this->hr();
 	}
-
+	function _paramsParsing(){
+		if (empty($this->params['path'])) {
+			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
+		} else {
+			$this->path = rtrim($this->params['path'], DS);
+		}
+		if (!empty($this->params['connection'])) {
+			$this->connection = $this->params['connection'];
+		}
+		if (preg_match("/[\/\\\]plugins[\/\\\]([^\/]+)[\/\\\]vendors[\/\\\]shells[\/\\\]migration\.php$/", $this->Dispatch->shellPath, $matches)) {
+			$this->_pluginName = Inflector::camelize($matches[1]);
+		}
+	}
 	/**
 	 * Configs of database
 	 */
 	function _startDBConfig() {
-		App::import('Core','Datsabase');
-
 		App::import('Model', array('ConnectionManager', 'Model'));
 		$this->db =& ConnectionManager::getDataSource($this->connection);
 		if (!is_subclass_of($this->db, 'DboSource')) {
@@ -113,8 +110,8 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		$this->db->cacheSources = false;
-
 		$sources = $this->db->listSources();
+		
 		if (!is_array($sources)) { // Database connection error
 			$this->_stop();
 		}
@@ -223,7 +220,7 @@ class MigrationShell extends Shell {
 	function reset() {
 		if ($this->down(true)) {
 			if (isset($this->params['force'])) {
-				App::import('Vendor', $this->_pluginName . 'Migration');
+				App::import('Vendor', $this->_pluginName . '.Migration');
 				$migration = new Migration($this->connection, $this);
 
 				$tables = $this->db->listSources();
@@ -299,8 +296,6 @@ class MigrationShell extends Shell {
 	 * Read path info
 	 */
 	function _readPathInfo() {
-		$filesInfo = array();
-
 		App::import('Core', 'Folder');
 		$folder = new Folder($this->path);
 		if (!$folder) {
@@ -313,6 +308,8 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		$read = $folder->read();
+		
+		$filesInfo = array();
 		foreach ($read[1] as $id => $file) { // Check only files
 			if (!preg_match('/^(\d{14})_(\w+)\.php/', $file, $matches)) {
 				continue;
@@ -323,7 +320,8 @@ class MigrationShell extends Shell {
 				'classname' => Inflector::camelize($matches[2])
 			);
 		}
-		$this->_filesInfo = Set::sort($filesInfo, '{n}.timestamp', 'asc');
+		$this->_filesInfo = $filesInfo;
+		//$this->_filesInfo = Set::sort($filesInfo, '/timestamp', 'asc');
 	}
 
 	/**
@@ -334,11 +332,11 @@ class MigrationShell extends Shell {
 			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have privileges for your user.', true), array('file'=>$filename)));
 			return false;
 		}
-		App::import('Vendor', $this->_pluginName . 'Migration'); // To not need include in migration file
+		App::import('Vendor', $this->_pluginName . '.Migration'); // To not need include in migration file
 		if (file_exists(APP_PATH . 'app_migration.php')) {
 			include APP_PATH . 'app_migration.php';
 		} else {
-			App::import('Vendor', $this->_pluginName . 'AppMigration');
+			App::import('Vendor', $this->_pluginName . '.AppMigration');
 		}
 		include $filename;
 		if (!class_exists($classname)) {
@@ -371,6 +369,8 @@ class MigrationShell extends Shell {
 		if (!$this->db->execute($this->db->createSchema($fakeSchema))) {
 			$this->err(String::insert(__d('migrations', 'Schema table ":tablename" can not be created.', true), array('tablename'=>$this->_schemaTable)));
 			$this->_stop();
+		}else {
+			$this->out(String::insert(__d('migrations', 'Schema table ":tablename" created.', true), array('tablename'=>$this->_schemaTable)));
 		}
 	}
 

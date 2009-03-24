@@ -27,10 +27,15 @@ class MigrationShellTestCase extends CakeTestCase {
     var $plugin;
     function setUp(){
         $this->Dispatcher =& new TestShellMockShellDispatcher();
-	
+        $this->Shell =& new MigrationShell($this->Dispatcher);
     }
-    function testReadRealPath(){
-        $this->Shell->_readPathInfo();
+    function testStartUp(){
+        $this->Shell->params = array (
+            'working'=> '',
+            'app'=> ''
+        );
+        $this->Shell->startup();
+        
     }
 }
 ?>
