@@ -74,7 +74,7 @@ class MigrationShell extends Shell {
 	 * Configs of database
 	 */
 	function _startDBConfig() {
-		config('database');
+		App::import('Core','Datsabase');
 
 		App::import('Model', array('ConnectionManager', 'Model'));
 		$this->db =& ConnectionManager::getDataSource($this->connection);
@@ -270,8 +270,8 @@ class MigrationShell extends Shell {
 		$filesInfo = array();
 
 		App::import('Core', 'Folder');
-		$folder = new Folder();
-		if (!$folder->cd($this->path)) {
+		$folder = new Folder($this->path);
+		if (!$folder) {
 			$this->err(__d('migrations', 'Specified path does not exist.', true));
 			$this->out(String::insert(
 					__d('migrations', 'Creates the following directory: :path',true),
@@ -281,15 +281,15 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		$read = $folder->read();
-		$info = array();
 		foreach ($read[1] as $id => $file) { // Check only files
 			if (!preg_match('/^(\d{14})_(\w+)\.php/', $file, $matches)) {
 				continue;
 			}
-			$file = $this->path . DS . $file;
-			$timestamp = $this->_dateToTimestamp($matches[1]);
-			$classname = Inflector::camelize($matches[2]);
-			$filesInfo[] = compact('file', 'timestamp', 'classname');
+			$filesInfo[] = array (
+				'file' => $this->path . DS . $file,
+				'timestamp' => $this->_dateToTimestamp($matches[1]),
+				'classname' => Inflector::camelize($matches[2])
+			);
 		}
 		$this->_filesInfo = Set::sort($filesInfo, '{n}.timestamp', 'asc');
 	}
