@@ -124,6 +124,14 @@ class Migration {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
+		if (is_array($tableName)) {
+			foreach ($tableName as $table) {
+				if (!$this->dropTable($table) && $this->stopOnError && $this->__error) {
+					return false;
+				}
+			}
+			return true;
+		}
 		$this->out('> ' . String::insert(__d('migrations', 'Dropping table ":table"... ', true), array('table' => $tableName)), false);
 		$this->__fakeSchema->tables = array($tableName => '');
 		if ($this->_db->execute($this->_db->dropSchema($this->__fakeSchema, $tableName))) {
