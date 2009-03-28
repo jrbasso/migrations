@@ -46,9 +46,9 @@ class Migration {
 		
 		foreach ($uses as $use) {
 			if (!PHP5) {
-				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
 			} else {
-				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $connection));
+				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
 			}
 			if (!$this->{$use}) {
 				$this->_shell->err(String::insert(
