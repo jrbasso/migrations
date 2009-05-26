@@ -41,9 +41,9 @@ class Migration {
 		$this->_shell =& $shell;
 		$this->_db =& $shell->db;
 		$this->__fakeSchema = new CakeSchema();
-		
+
 		$uses = $this->_getUses();
-		
+
 		foreach ($uses as $use) {
 			if (!PHP5) {
 				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
@@ -84,17 +84,41 @@ class Migration {
     /**
      * Funçao de criaçao de tabela
      */
-    function createTable($tableName, $columns, $indexes = array()) {
+    function createTable($tableName, $columns, $indexes = array(), $options = array()) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
-		
-		$columns = am ($columns, array(
-			'id'=> array('type'=>'integer', 'null' => false, 'default' => NULL, 'key' => 'primary'),
-			'created'=> array('type'=>'datetime', 'null' => false, 'default' => NULL),
-			'modified' => array('type'=>'datetime', 'null' => false, 'default' => NULL)
-		));
-		
+
+		$_defaults = array(
+			'insertId' => true,
+			'insertCreated' => true,
+			'insertModified' => true,
+			'insertUpdated' => false
+		);
+		$options = array_merge($_defaults, $options);
+
+		if (!empty($options['insertId']) && !isset($columns['id'])) {
+			$idColumn = array(
+				'id' => array(
+					'type' => 'integer',
+					'null' => false,
+					'default' => null,
+					'key' => 'primary'
+				)
+			);
+			$columns = $idColumn + $columns; // To insert on the begin
+		}
+		$datesColumn = array(
+			'type' => 'datetime',
+			'null' => false,
+			'default' => null
+		);
+		foreach (array('created', 'modified', 'updated') as $field) {
+			if ($options['insert' . Inflector::camelize($field)] && !isset($columns[$field])) {
+				$columns[$field] = $datesColumn;
+			}
+		}
+
 		$this->out('> ' . String::insert(
 			__d('migrations', 'Creating table ":table"... ', true),
 			array('table' => $tableName)
