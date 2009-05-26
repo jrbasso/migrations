@@ -97,6 +97,7 @@ class MigrationShell extends Shell {
 		));
 		$this->hr();
 	}
+
 	function _paramsParsing(){
 		if (empty($this->params['path'])) {
 			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
@@ -110,6 +111,7 @@ class MigrationShell extends Shell {
 			$this->_pluginName = Inflector::camelize($matches[1]);
 		}
 	}
+
 	/**
 	 * Configs of database
 	 */
@@ -173,7 +175,7 @@ class MigrationShell extends Shell {
 				));
 			}
 		}
-		return __d('migrations', 'All updated.', true);
+		return __d('migrations', 'All updated.', true) . "\n";
 	}
 
 	/**
@@ -181,7 +183,7 @@ class MigrationShell extends Shell {
 	 */
 	function down($all = false) {
 		if ($this->lastVersion == 0) {
-			return __d('migration', 'No version installed.', true);
+			return __d('migration', 'No version installed.', true) . "\n";
 		}
 		if ($all === true) {
 			$date = 0; // Minimal date
@@ -222,7 +224,7 @@ class MigrationShell extends Shell {
 			}
 			break;
 		}
-		return __d('migrations', 'All down.', true);
+		return __d('migrations', 'All down.', true) . "\n";
 	}
 
 	/**
@@ -250,7 +252,7 @@ class MigrationShell extends Shell {
 					$this->db->commit($migration);
 				}
 			}
-			return __d('migrations', 'Resetted.', true);
+			return __d('migrations', 'Resetted.', true) . "\n";
 		}
 		return false;
 	}
