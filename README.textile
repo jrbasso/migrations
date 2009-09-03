@@ -1,1 +1,126 @@
-README.pt-br.textile
+h1. CakePHP Migrations
+
+Uma das grandes dificuldades dentro de um time de desenvolvimento WEB, sem dúvida, é manter o Banco de Dados atualizado entre todos ambientes de trabalho. Volta e meia um desenvolvedor faz alguma alteração no banco e não comunica o restante do grupo. Isto sempre causa retrabalho, bugs ou um programador arrancando o próprio cabelo.
+
+Uma das causas deste problema é que em nenhum momento rastreamos as modificações do banco em nossos projetos. Para o código temos o "SCM":1 (source code management), para controlar as tarefas temos os gerenciadores de projetos, para os documentos temos o Google Docs, mas para o banco de dados? Foi pensando nesses problemas que se criou o técnica de Migrations. O Migrations é uma forma de manter organizadas as modificações na estrutura do banco de dados, permitindo, dentre algumas facilidades, construir seu banco incrementalmente, retroceder alteração que não sejam mais adequadas ou trabalhar em ambientes com diversos programadores.
+
+O conceito básico de Migrations consiste em armazenar as modificações do banco em pequenos arquivos numa ordem cronológica. Esses arquivos devem conter informações que consigam construir ou destruir seu banco de uma versão para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualização (UP) e como retroceder (DOWN), assim, quando quer ir para uma versão mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs até a versão mais antiga. Com ajuda de um programa auxiliar, que geralmente é um automatizador, você consegue executar facilmente tarefas como (re)construção de banco, atualização de alterações ou rollback?s de algo que não saiu como se devia.
+
+Em algumas implementações de Migrations é possível fazer manipulação de dados. Esta é uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que você, em um determinado momento, queira fazer uma modificação no campo ?nome_completo? quebrando-o em dois: ?nome? e ?sobrenome?. Com a manipulação você consegue fazer o tratamento dos dados e migrar, não só a estrutura do banco, mas também os dados que por ventura podem estar armazenados. Esta funcionalidade dá um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementações.
+
+Será baseado nisso que vamos construir um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribuído que utilizam o CakePHP.
+
+Projetos relacionados:
+* "Migrations para CakePHP usando YAML e PEAR por JoelMoss":4
+* "Migrations para CakePHP usando YAML sem PEAR por Georgi Momchilov":8
+* "Ruckusing":5
+* "Migrations no Ruby on Rails":6
+* "Migrations no framework PHP Akelos":7
+
+h2. Modo de utilização
+
+h3. Console
+
+Inicialmente o console contará com com as seguintes funções:
+* up: servirá para atualizar para a versão mais recente. Opcionalmente, pode ser passado um parâmetro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento máximo que deseja-se atualizar;
+* down: terá como parâmetro uma data e hora (formato YYYYMMDDHHMMSS) para informar até que momento deseja remover;
+* reset: irá executar o down de todos os migrations instalados. Poderá ser usado o parâmetro -force para executar todos os down's e no final limpar o restante do banco de dados (caso alguma tabela não tenha sido criada pelo sistema de migrations);
+* rebuild: executará o reset (também poderá ser passado o parâmetro -force) e, em seguida, executará um up até o último migration.
+
+Este é o escopo inicial, ao decorrer do projeto e da necessidade, serão criadas novas funcionalidades.
+
+O controle dos migrations instalados ficará armazenado em uma tabela do banco de dados, chamada 'schema_migrations'. Cuidar para não fazer um bake desta tabela, e muito menos modificá-la.
+
+h3. Classe Migrations
+
+Migrations será a classe pai para os arquivos de migrations. Esta classe vai possuir todas as facilidades necessárias para o desenvolvimento do código. Você poderá colocar no diretório da sua aplicação o arquivo app_migrations.php para incluir métodos comuns a todos os filhos de Migrations, assim como faz com os arquivos de app_model.php, app_controller.php, etc. Note que este arquivo é opcional. A estrutura você pode conferir abaixo:
+
+<pre><code><?php
+class AppMigrations extends Migrations {
+}
+?></code></pre>
+
+Terá as seguintes funções (os protótipos serão descritos em outro momento):
+* createTable: Criar uma tabela;
+* dropTable: Remove uma tabela;
+* renameTable: Renomear uma tabela;
+* addColumn: Incluir uma nova coluna em uma tabela;
+* removeColumn: Remover uma coluna da tabela;
+* changeColumn: Alterar o tipo de uma coluna;
+* renameColumn: Renomear uma coluna;
+* addIndex: Criar um novo indice;
+* removeIndex: Remover um indice.
+
+Além destes métodos, cada um terá o seu callback, ficando: beforeCreateTable, afterCreateTable, beforeDropTable, ...
+
+Os arquivos de migrations da aplicação deverão ser criados na pasta APP/config/sql/migrations.
+
+h3. Exemplo de classe usando o AppMigrations
+
+<pre>
+<code><?php
+/*
+ Arquivo: 20090228181615_add_user_table.php
+ Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe é AddUserTable (o nome deve ser com underlines).
+*/
+
+class AddUserTable extends AppMigrations {
+    function up(){
+        $this->createTable('users',array(
+            'name'=>'string',
+            'pass'=>'string',
+            'email'=>array('type'=>'string','lenght'=>'100')
+        ));
+        // Não precisa colocar created ou modified
+    }
+    function down(){
+        $this->dropTable('users');
+    }
+}
+?></code>
+</pre>
+
+Este será o escopo inicial, utilizando apenas as funções herdadas da classe AppMigrations. Como roadmap, esperamos chegar no seguinte nível:
+<pre>
+<code><?php
+class AddUserTable extends AppMigrations {
+    var $uses = array('Profile');
+    function up(){
+        $this->createTable('users',array(
+            'pass'=>'string',
+            'email'=>array('type'=>'string','lenght'=>'100')
+        ));
+        $profiles = $this->Profile->find('all');
+        $user = $this->getModel('User');
+        foreach($profiles as $profile){
+            $user->create(array(
+                'pass'=> sha1('123'),
+                'email'=> $profile['Profile']['email']
+            ));
+            $user->save();
+        }
+        // Não precisa colocar created ou modified
+    }
+    function down(){
+        $this->dropTable('users');
+    }
+}
+?></code>
+</pre>
+
+Ou seja, acessando models já existentes ou até mesmo inserindo registros na tabela que está sendo criada naquele momento.
+
+h2. Bugs conhecidos
+
+* Se já houver uma tabela de "schema_migrations" dentro do banco, não há nenhuma verificação se ela é consistente com o sistema (se a tabela existir mas tiver campos diferente, o migrations não irá funcionar)
+* Poblemas quando já existe uma tabela que algum UP está tentando adicionar, não testei mas acredito que dará erro se tentar 'dropar' uma tabela que não tem no banco
+
+
+[1]http://en.wikipedia.org/wiki/Revision_control
+[2]http://en.wikipedia.org/wiki/Database_administrator
+[3]http://www.cakephp.org/
+[4]http://github.com/joelmoss/cakephp-db-migrations/tree/master
+[5]http://code.google.com/p/ruckusing/
+[6]http://api.rubyonrails.org/classes/ActiveRecord/Migration.html
+[7]http://www.akelos.org/wiki/creating-and-running-migrations
+[8]http://bakery.cakephp.org/articles/view/cakephp-yaml-migrations-and-fixtures-withour-pear
