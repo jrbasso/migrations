@@ -79,7 +79,7 @@ class Migration {
 		if (!in_array($tableName, $this->_db->listSources())) {
 			return null;
 		}
-		return new Model(array('name' => Inflector::camelize(Inflector::singularize($tableName)), 'table' => $tableName, 'ds' => $this->_db->configKeyName));
+		return new AppModel(array('name' => Inflector::camelize(Inflector::singularize($tableName)), 'table' => $tableName, 'ds' => $this->_db->configKeyName));
 	}
 
     /**
