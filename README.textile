@@ -1,14 +1,14 @@
 h1. CakePHP Migrations
 
-Uma das grandes dificuldades dentro de um time de desenvolvimento WEB, sem d˙vida, È manter o Banco de Dados atualizado entre todos ambientes de trabalho. Volta e meia um desenvolvedor faz alguma alteraÁ„o no banco e n„o comunica o restante do grupo. Isto sempre causa retrabalho, bugs ou um programador arrancando o prÛprio cabelo.
+Uma das grandes dificuldades dentro de um time de desenvolvimento WEB, sem d√∫vida, √© manter o Banco de Dados atualizado entre todos ambientes de trabalho. Volta e meia um desenvolvedor faz alguma altera√ß√£o no banco e n√£o comunica o restante do grupo. Isto sempre causa retrabalho, bugs ou um programador arrancando o pr√≥prio cabelo.
 
-Uma das causas deste problema È que em nenhum momento rastreamos as modificaÁıes do banco em nossos projetos. Para o cÛdigo temos o "SCM":1 (source code management), para controlar as tarefas temos os gerenciadores de projetos, para os documentos temos o Google Docs, mas para o banco de dados? Foi pensando nesses problemas que se criou o tÈcnica de Migrations. O Migrations È uma forma de manter organizadas as modificaÁıes na estrutura do banco de dados, permitindo, dentre algumas facilidades, construir seu banco incrementalmente, retroceder alteraÁ„o que n„o sejam mais adequadas ou trabalhar em ambientes com diversos programadores.
+Uma das causas deste problema √© que em nenhum momento rastreamos as modifica√ß√µes do banco em nossos projetos. Para o c√≥digo temos o "SCM":1 (source code management), para controlar as tarefas temos os gerenciadores de projetos, para os documentos temos o Google Docs, mas para o banco de dados? Foi pensando nesses problemas que se criou o t√©cnica de Migrations. O Migrations √© uma forma de manter organizadas as modifica√ß√µes na estrutura do banco de dados, permitindo, dentre algumas facilidades, construir seu banco incrementalmente, retroceder altera√ß√£o que n√£o sejam mais adequadas ou trabalhar em ambientes com diversos programadores.
 
-O conceito b·sico de Migrations consiste em armazenar as modificaÁıes do banco em pequenos arquivos numa ordem cronolÛgica. Esses arquivos devem conter informaÁıes que consigam construir ou destruir seu banco de uma vers„o para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualizaÁ„o (UP) e como retroceder (DOWN), assim, quando quer ir para uma vers„o mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs atÈ a vers„o mais antiga. Com ajuda de um programa auxiliar, que geralmente È um automatizador, vocÍ consegue executar facilmente tarefas como (re)construÁ„o de banco, atualizaÁ„o de alteraÁıes ou rollback?s de algo que n„o saiu como se devia.
+O conceito b√°sico de Migrations consiste em armazenar as modifica√ß√µes do banco em pequenos arquivos numa ordem cronol√≥gica. Esses arquivos devem conter informa√ß√µes que consigam construir ou destruir seu banco de uma vers√£o para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualiza√ß√£o (UP) e como retroceder (DOWN), assim, quando quer ir para uma vers√£o mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs at√© a vers√£o mais antiga. Com ajuda de um programa auxiliar, que geralmente √© um automatizador, voc√™ consegue executar facilmente tarefas como (re)constru√ß√£o de banco, atualiza√ß√£o de altera√ß√µes ou rollback?s de algo que n√£o saiu como se devia.
 
-Em algumas implementaÁıes de Migrations È possÌvel fazer manipulaÁ„o de dados. Esta È uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que vocÍ, em um determinado momento, queira fazer uma modificaÁ„o no campo ?nome_completo? quebrando-o em dois: ?nome? e ?sobrenome?. Com a manipulaÁ„o vocÍ consegue fazer o tratamento dos dados e migrar, n„o sÛ a estrutura do banco, mas tambÈm os dados que por ventura podem estar armazenados. Esta funcionalidade d· um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementaÁıes.
+Em algumas implementa√ß√µes de Migrations √© poss√≠vel fazer manipula√ß√£o de dados. Esta √© uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que voc√™, em um determinado momento, queira fazer uma modifica√ß√£o no campo ?nome_completo? quebrando-o em dois: ?nome? e ?sobrenome?. Com a manipula√ß√£o voc√™ consegue fazer o tratamento dos dados e migrar, n√£o s√≥ a estrutura do banco, mas tamb√©m os dados que por ventura podem estar armazenados. Esta funcionalidade d√° um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementa√ß√µes.
 
-Ser· baseado nisso que vamos construir um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribuÌdo que utilizam o CakePHP.
+Ser√° baseado nisso que vamos construir um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribu√≠do que utilizam o CakePHP.
 
 Projetos relacionados:
 * "Migrations para CakePHP usando YAML e PEAR por JoelMoss":4
@@ -17,30 +17,30 @@ Projetos relacionados:
 * "Migrations no Ruby on Rails":6
 * "Migrations no framework PHP Akelos":7
 
-h2. Modo de utilizaÁ„o
+h2. Modo de utiliza√ß√£o
 
 h3. Console
 
-Inicialmente o console contar· com com as seguintes funÁıes:
-* up: servir· para atualizar para a vers„o mais recente. Opcionalmente, pode ser passado um par‚metro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento m·ximo que deseja-se atualizar;
-* down: ter· como par‚metro uma data e hora (formato YYYYMMDDHHMMSS) para informar atÈ que momento deseja remover;
-* reset: ir· executar o down de todos os migrations instalados. Poder· ser usado o par‚metro -force para executar todos os down's e no final limpar o restante do banco de dados (caso alguma tabela n„o tenha sido criada pelo sistema de migrations);
-* rebuild: executar· o reset (tambÈm poder· ser passado o par‚metro -force) e, em seguida, executar· um up atÈ o ˙ltimo migration.
+Inicialmente o console contar√° com com as seguintes fun√ß√µes:
+* up: servir√° para atualizar para a vers√£o mais recente. Opcionalmente, pode ser passado um par√¢metro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento m√°ximo que deseja-se atualizar;
+* down: ter√° como par√¢metro uma data e hora (formato YYYYMMDDHHMMSS) para informar at√© que momento deseja remover;
+* reset: ir√° executar o down de todos os migrations instalados. Poder√° ser usado o par√¢metro -force para executar todos os down's e no final limpar o restante do banco de dados (caso alguma tabela n√£o tenha sido criada pelo sistema de migrations);
+* rebuild: executar√° o reset (tamb√©m poder√° ser passado o par√¢metro -force) e, em seguida, executar√° um up at√© o √∫ltimo migration.
 
-Este È o escopo inicial, ao decorrer do projeto e da necessidade, ser„o criadas novas funcionalidades.
+Este √© o escopo inicial, ao decorrer do projeto e da necessidade, ser√£o criadas novas funcionalidades.
 
-O controle dos migrations instalados ficar· armazenado em uma tabela do banco de dados, chamada 'schema_migrations'. Cuidar para n„o fazer um bake desta tabela, e muito menos modific·-la.
+O controle dos migrations instalados ficar√° armazenado em uma tabela do banco de dados, chamada 'schema_migrations'. Cuidar para n√£o fazer um bake desta tabela, e muito menos modific√°-la.
 
 h3. Classe Migrations
 
-Migrations ser· a classe pai para os arquivos de migrations. Esta classe vai possuir todas as facilidades necess·rias para o desenvolvimento do cÛdigo. VocÍ poder· colocar no diretÛrio da sua aplicaÁ„o o arquivo app_migrations.php para incluir mÈtodos comuns a todos os filhos de Migrations, assim como faz com os arquivos de app_model.php, app_controller.php, etc. Note que este arquivo È opcional. A estrutura vocÍ pode conferir abaixo:
+Migrations ser√° a classe pai para os arquivos de migrations. Esta classe vai possuir todas as facilidades necess√°rias para o desenvolvimento do c√≥digo. Voc√™ poder√° colocar no diret√≥rio da sua aplica√ß√£o o arquivo app_migrations.php para incluir m√©todos comuns a todos os filhos de Migrations, assim como faz com os arquivos de app_model.php, app_controller.php, etc. Note que este arquivo √© opcional. A estrutura voc√™ pode conferir abaixo:
 
 <pre><code><?php
 class AppMigrations extends Migrations {
 }
 ?></code></pre>
 
-Ter· as seguintes funÁıes (os protÛtipos ser„o descritos em outro momento):
+Ter√° as seguintes fun√ß√µes (os prot√≥tipos ser√£o descritos em outro momento):
 * createTable: Criar uma tabela;
 * dropTable: Remove uma tabela;
 * renameTable: Renomear uma tabela;
@@ -51,9 +51,9 @@ Ter· as seguintes funÁıes (os protÛtipos ser„o descritos em outro momento):
 * addIndex: Criar um novo indice;
 * removeIndex: Remover um indice.
 
-AlÈm destes mÈtodos, cada um ter· o seu callback, ficando: beforeCreateTable, afterCreateTable, beforeDropTable, ...
+Al√©m destes m√©todos, cada um ter√° o seu callback, ficando: beforeCreateTable, afterCreateTable, beforeDropTable, ...
 
-Os arquivos de migrations da aplicaÁ„o dever„o ser criados na pasta APP/config/sql/migrations.
+Os arquivos de migrations da aplica√ß√£o dever√£o ser criados na pasta APP/config/sql/migrations.
 
 h3. Exemplo de classe usando o AppMigrations
 
@@ -61,7 +61,7 @@ h3. Exemplo de classe usando o AppMigrations
 <code><?php
 /*
  Arquivo: 20090228181615_add_user_table.php
- Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe È AddUserTable (o nome deve ser com underlines).
+ Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe √© AddUserTable (o nome deve ser com underlines).
 */
 
 class AddUserTable extends AppMigrations {
@@ -71,7 +71,7 @@ class AddUserTable extends AppMigrations {
             'pass'=>'string',
             'email'=>array('type'=>'string','lenght'=>'100')
         ));
-        // N„o precisa colocar created ou modified
+        // N√£o precisa colocar created ou modified
     }
     function down(){
         $this->dropTable('users');
@@ -80,7 +80,7 @@ class AddUserTable extends AppMigrations {
 ?></code>
 </pre>
 
-Este ser· o escopo inicial, utilizando apenas as funÁıes herdadas da classe AppMigrations. Como roadmap, esperamos chegar no seguinte nÌvel:
+Este ser√° o escopo inicial, utilizando apenas as fun√ß√µes herdadas da classe AppMigrations. Como roadmap, esperamos chegar no seguinte n√≠vel:
 <pre>
 <code><?php
 class AddUserTable extends AppMigrations {
@@ -99,7 +99,7 @@ class AddUserTable extends AppMigrations {
             ));
             $user->save();
         }
-        // N„o precisa colocar created ou modified
+        // N√£o precisa colocar created ou modified
     }
     function down(){
         $this->dropTable('users');
@@ -108,12 +108,12 @@ class AddUserTable extends AppMigrations {
 ?></code>
 </pre>
 
-Ou seja, acessando models j· existentes ou atÈ mesmo inserindo registros na tabela que est· sendo criada naquele momento.
+Ou seja, acessando models j√° existentes ou at√© mesmo inserindo registros na tabela que est√° sendo criada naquele momento.
 
 h2. Bugs conhecidos
 
-* Se j· houver uma tabela de "schema_migrations" dentro do banco, n„o h· nenhuma verificaÁ„o se ela È consistente com o sistema (se a tabela existir mas tiver campos diferente, o migrations n„o ir· funcionar)
-* Poblemas quando j· existe uma tabela que algum UP est· tentando adicionar, n„o testei mas acredito que dar· erro se tentar 'dropar' uma tabela que n„o tem no banco
+* Se j√° houver uma tabela de "schema_migrations" dentro do banco, n√£o h√° nenhuma verifica√ß√£o se ela √© consistente com o sistema (se a tabela existir mas tiver campos diferente, o migrations n√£o ir√° funcionar)
+* Poblemas quando j√° existe uma tabela que algum UP est√° tentando adicionar, n√£o testei mas acredito que dar√° erro se tentar 'dropar' uma tabela que n√£o tem no banco
 
 
 [1]http://en.wikipedia.org/wiki/Revision_control
