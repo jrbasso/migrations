@@ -45,12 +45,13 @@ class Migration {
 		$uses = $this->_getUses();
 
 		foreach ($uses as $use) {
+			$varName = Inflector::camelize($use);
 			if (!PHP5) {
-				$this->{$use} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
+				$this->{$varName} =& ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
 			} else {
-				$this->{$use} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
+				$this->{$varName} = ClassRegistry::init(array('class' => $use, 'alias' => $use, 'ds' => $shell->connection));
 			}
-			if (!$this->{$use}) {
+			if (!$this->{$varName}) {
 				$this->_shell->err(String::insert(
 					__d('migrations', 'Model ":model" not exists.', true),
 					array('model' => $use)
