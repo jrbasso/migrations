@@ -4,13 +4,14 @@ Uma das grandes dificuldades dentro de um time de desenvolvimento WEB, sem dúvi
 
 Uma das causas deste problema é que em nenhum momento rastreamos as modificações do banco em nossos projetos. Para o código temos o "SCM":1 (source code management), para controlar as tarefas temos os gerenciadores de projetos, para os documentos temos o Google Docs, mas para o banco de dados? Foi pensando nesses problemas que se criou o técnica de Migrations. O Migrations é uma forma de manter organizadas as modificações na estrutura do banco de dados, permitindo, dentre algumas facilidades, construir seu banco incrementalmente, retroceder alteração que não sejam mais adequadas ou trabalhar em ambientes com diversos programadores.
 
-O conceito básico de Migrations consiste em armazenar as modificações do banco em pequenos arquivos numa ordem cronológica. Esses arquivos devem conter informações que consigam construir ou destruir seu banco de uma versão para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualização (UP) e como retroceder (DOWN), assim, quando quer ir para uma versão mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs até a versão mais antiga. Com ajuda de um programa auxiliar, que geralmente é um automatizador, você consegue executar facilmente tarefas como (re)construção de banco, atualização de alterações ou rollback?s de algo que não saiu como se devia.
+O conceito básico de Migrations consiste em armazenar as modificações do banco em pequenos arquivos numa ordem cronológica. Esses arquivos devem conter informações que consigam construir ou destruir seu banco de uma versão para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualização (UP) e como retroceder (DOWN), assim, quando quer ir para uma versão mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs até a versão mais antiga. Com ajuda de um programa auxiliar, que geralmente é um automatizador, você consegue executar facilmente tarefas como (re)construção de banco, atualização de alterações ou rollbacks de algo que não saiu como se devia.
 
-Em algumas implementações de Migrations é possível fazer manipulação de dados. Esta é uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que você, em um determinado momento, queira fazer uma modificação no campo ?nome_completo? quebrando-o em dois: ?nome? e ?sobrenome?. Com a manipulação você consegue fazer o tratamento dos dados e migrar, não só a estrutura do banco, mas também os dados que por ventura podem estar armazenados. Esta funcionalidade dá um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementações.
+Em algumas implementações de Migrations é possível fazer manipulação de dados. Esta é uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que você, em um determinado momento, queira fazer uma modificação no campo "nome_completo" quebrando-o em dois: "nome" e "sobrenome". Com a manipulação você consegue fazer o tratamento dos dados e migrar, não só a estrutura do banco, mas também os dados que por ventura podem estar armazenados. Esta funcionalidade dá um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementações.
 
-Será baseado nisso que vamos construir um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribuído que utilizam o CakePHP.
+É baseado nisso que construímos um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribuído de quem utiliza o CakePHP.
 
-Projetos relacionados:
+h2. Projetos relacionados
+
 * "Migrations para CakePHP usando YAML e PEAR por JoelMoss":4
 * "Migrations para CakePHP usando YAML sem PEAR por Georgi Momchilov":8
 * "Ruckusing":5
@@ -21,39 +22,121 @@ h2. Modo de utilização
 
 h3. Console
 
-Inicialmente o console contará com com as seguintes funções:
-* up: servirá para atualizar para a versão mais recente. Opcionalmente, pode ser passado um parâmetro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento máximo que deseja-se atualizar;
-* down: terá como parâmetro uma data e hora (formato YYYYMMDDHHMMSS) para informar até que momento deseja remover;
+O console tem as seguintes funções:
+* help: mostrar o modo de utilização básico;
+* create: cria um arquivo de migrations com o template. Como parâmetro deve ser passado um nome de referência, sem espaços e acentos;
+* up: atualiza para a versão mais recente. Opcionalmente, pode ser passado um parâmetro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento máximo que deseja-se atualizar;
+* down: tem como parâmetro uma data e hora (formato YYYYMMDDHHMMSS) para informar até que momento deseja remover;
 * reset: irá executar o down de todos os migrations instalados. Poderá ser usado o parâmetro -force para executar todos os down's e no final limpar o restante do banco de dados (caso alguma tabela não tenha sido criada pelo sistema de migrations);
 * rebuild: executará o reset (também poderá ser passado o parâmetro -force) e, em seguida, executará um up até o último migration.
 
-Este é o escopo inicial, ao decorrer do projeto e da necessidade, serão criadas novas funcionalidades.
-
-O controle dos migrations instalados ficará armazenado em uma tabela do banco de dados, chamada 'schema_migrations'. Cuidar para não fazer um bake desta tabela, e muito menos modificá-la.
+O controle dos migrations instalados fica armazenado em uma tabela do banco de dados, chamada 'schema_migrations'. Cuidar para não fazer um bake desta tabela, e muito menos modificá-la.
 
 h3. Classe Migrations
 
-Migrations será a classe pai para os arquivos de migrations. Esta classe vai possuir todas as facilidades necessárias para o desenvolvimento do código. Você poderá colocar no diretório da sua aplicação o arquivo app_migrations.php para incluir métodos comuns a todos os filhos de Migrations, assim como faz com os arquivos de app_model.php, app_controller.php, etc. Note que este arquivo é opcional. A estrutura você pode conferir abaixo:
+A class Migrations será a classe pai para os arquivos de migrations. Esta classe vai possuir todas as facilidades necessárias para o desenvolvimento do código. Você pode colocar no diretório da sua aplicação o arquivo app_migrations.php para incluir métodos comuns a todos os filhos de Migrations, assim como faz com os arquivos de app_model.php, app_controller.php, etc. Note que este arquivo é opcional. A estrutura você pode conferir abaixo:
 
 <pre><code><?php
 class AppMigrations extends Migrations {
 }
 ?></code></pre>
 
-Terá as seguintes funções (os protótipos serão descritos em outro momento):
+Terá as seguintes funções (explicações detalhas em seguida):
 * createTable: Criar uma tabela;
+* changeTable: Altera uma tabela (em construção);
 * dropTable: Remove uma tabela;
-* renameTable: Renomear uma tabela;
 * addColumn: Incluir uma nova coluna em uma tabela;
 * removeColumn: Remover uma coluna da tabela;
 * changeColumn: Alterar o tipo de uma coluna;
 * renameColumn: Renomear uma coluna;
-* addIndex: Criar um novo indice;
-* removeIndex: Remover um indice.
+* addIndex: Criar um novo indice (em construção);
+* removeIndex: Remover um indice (em construção).
 
-Além destes métodos, cada um terá o seu callback, ficando: beforeCreateTable, afterCreateTable, beforeDropTable, ...
+Além destes métodos, cada um terá o seu callback, ficando: @beforeCreateTable@, @afterCreateTable@, @beforeDropTable@, ... Além destes callbacks, você pode implementar o @beforeInstall@, @afterInstall@, @beforeUninstall@ e @afterUninstall@. Em qualquer um destes callbacks se você retornar @false@ ele irá interromper o processo do migration em questão.
 
-Os arquivos de migrations da aplicação deverão ser criados na pasta APP/config/sql/migrations.
+E para facilitar, o migration pode escrever alguma coisa na tela, através da função @out@.
+
+Também poderá instanciar uma model através da variável $uses na classe, assim como nos controllers. O model deve existir! Nos exemplos você poderá ver a utilidade. Se quiser criar uma model em tempo de execução, sem ter o arquivo de model pronto, você pode fazer isto através do método getModel.
+
+h4. createTable
+
+@createTable($tableName, $columns, $indexes = array(), $options = array())@
+
+O campo $tableName representa o nome da tabela. $columns representa os campos a serem inseridos. $indexes são os indices. Para indices primários é possível definir junto do columns (explicação a seguir). Já o campo options serve para informar se não deseja incluir algum dos campos automáticos.
+
+Explicando um pouco sobre o $columns: ele é o mesmo utilizado pelo CakePHP no schema. Deve ser um array onde as chaves são os nomes dos campos e o valor um array com as seguintes informações:
+* type: (obrigatório) Tipo do campo. Pode ter os valores 'string', 'integer', 'float', ...
+* length: (opcional) Define o tamanho do campo. Exemplo, para um campo 'string' deve ser informado o valor, caso contrário será um campo string de tamanho 1.
+* null: (opcional) Informa se o campo pode ser nulo. O valor deve ser um booleano.
+* default: (opcional) Informa o valor padrão do campo. Ele deve ser definido como uma string.
+* after: (opcional) Informa para inserir o campo após determinado campo. Este campo não faz tanto sentido no createTable, mas num addColumn ele é útil.
+* key: (opcional) Definir o nome da chave. Caso seja escolhido o nome 'primary' ele será o campo primário.
+
+O campo $options é um array e pode ser definido os seguintes valores:
+* insertId: informa se vai inserir o campo id automaticamente. O padrão é true.
+* insertCreated: informa se vai inserir o campo created automaticamente. O padrão é true.
+* insertModified: informa se vai inserir o campo modified automaticamente. O padrão é true.
+* insertUpdated: informa se vai inserir o campo updated automaticamente. O padrão é false.
+
+Se você definir algum destes campos no campo $columns, ele irá ignorar a inserção automática.
+
+h4. changeTable
+
+Em construção.
+
+h4. dropTable
+
+@dropTable($tableName)@
+
+Serve para excluir uma tabela. Normalmente utilizado no método de down.
+
+h4. addColumn
+
+@addColumn($tableName, $columnName, $columnConfig = array())@
+
+Adicionar uma coluna após ter inserido uma tabela. O campo $columnConfig segue a mesma regra descrita no createTable.
+
+h4. removeColumn
+
+@removeColumn($tableName, $columnName)@
+
+Remove uma coluna.
+
+h4. changeColumn
+
+@changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true)@
+
+Altera as características de uma coluna. O campo verbose pode ser ignorado.
+
+h4. renamColumn
+
+@renameColumn($tableName, $oldColumnName, $newColumnName)@
+
+Renomeia uma coluna.
+
+h4. addIndex
+
+Em construção.
+
+h4. removeIndex
+
+Em construção.
+
+h4. out
+
+@out($message, $newLine = true)@
+
+Escreve uma mensagem no shell. Apenas para dar alguns status ou informação do que está acontecendo...
+
+h4. getModel
+
+@getModel($tableName)@
+
+Cria um objeto herdado de AppModel com as configurações da tabela passada por parâmetro. Retorna um objeto similar a um model sem relacionamentos.
+
+h4. $uses
+
+Identico ao $uses do controller.
 
 h3. Exemplo de classe usando o AppMigrations
 
@@ -61,59 +144,60 @@ h3. Exemplo de classe usando o AppMigrations
 <code><?php
 /*
  Arquivo: 20090228181615_add_user_table.php
- Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe é AddUserTable (o nome deve ser com underlines).
+ Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe é AddUserTable (o nome da classe deve ser um camelize do nome do arquivo sem a data).
 */
 
 class AddUserTable extends AppMigrations {
-    function up(){
-        $this->createTable('users',array(
-            'name'=>'string',
-            'pass'=>'string',
-            'email'=>array('type'=>'string','lenght'=>'100')
+
+    function up() {
+        $this->createTable('users', array(
+            'name' => 'string',
+            'pass' => 'string',
+            'email' => array('type' => 'string', 'lenght' => '100')
         ));
-        // Não precisa colocar created ou modified
+        // Não precisa colocar id, created ou modified
     }
-    function down(){
+
+    function down() {
         $this->dropTable('users');
     }
 }
 ?></code>
 </pre>
 
-Este será o escopo inicial, utilizando apenas as funções herdadas da classe AppMigrations. Como roadmap, esperamos chegar no seguinte nível:
+No código acima, ele irá criar a tabela users com os campos id, name, pass, email, created e modified.
+
+Também pode-se fazer algo mais detalhado com migrations, veja:
 <pre>
 <code><?php
+
 class AddUserTable extends AppMigrations {
     var $uses = array('Profile');
-    function up(){
+
+    function up() {
         $this->createTable('users',array(
-            'pass'=>'string',
-            'email'=>array('type'=>'string','lenght'=>'100')
+            'pass' => 'string',
+            'email' => array('type' => 'string', 'lenght' => '100')
         ));
         $profiles = $this->Profile->find('all');
-        $user = $this->getModel('User');
-        foreach($profiles as $profile){
+        $user = $this->getModel('User'); // Parte do princípio que no commit foi enviado o model User.php, isto serve para quem for atualizar o repositório...
+        foreach ($profiles as $profile) {
             $user->create(array(
-                'pass'=> sha1('123'),
-                'email'=> $profile['Profile']['email']
+                'pass' => sha1('123'),
+                'email' => $profile['Profile']['email']
             ));
             $user->save();
         }
-        // Não precisa colocar created ou modified
     }
-    function down(){
+
+    function down() {
         $this->dropTable('users');
     }
 }
 ?></code>
 </pre>
 
-Ou seja, acessando models já existentes ou até mesmo inserindo registros na tabela que está sendo criada naquele momento.
-
-h2. Bugs conhecidos
-
-* Se já houver uma tabela de "schema_migrations" dentro do banco, não há nenhuma verificação se ela é consistente com o sistema (se a tabela existir mas tiver campos diferente, o migrations não irá funcionar)
-* Poblemas quando já existe uma tabela que algum UP está tentando adicionar, não testei mas acredito que dará erro se tentar 'dropar' uma tabela que não tem no banco
+Ou seja, é possível acessar models já existentes ou até mesmo inserindo registros na tabela que está sendo criada naquele momento.
 
 
 [1]http://en.wikipedia.org/wiki/Revision_control
