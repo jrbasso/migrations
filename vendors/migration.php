@@ -65,7 +65,7 @@ class Migration {
 		$uses = get_class_vars('AppMigration');
 		$uses = $uses['uses'];
 		if (!is_array($uses)) {
-			$uses = array();
+			$uses = array($uses);
 		}
 		if (!is_array($this->uses)) {
 			$this->uses = array($this->uses);
@@ -226,7 +226,7 @@ class Migration {
 		if ($this->_db->isInterfaceSupported('describe')) {
 			$describe = $this->_db->describe($tableName, true);
 			if (!isset($describe[$columnName])) {
-				$verbose &&  $this->out(__d('migrations', 'column not found.', true));
+				$verbose && $this->out(__d('migrations', 'column not found.', true));
 				$this->__error = true;
 				return false;
 			}
