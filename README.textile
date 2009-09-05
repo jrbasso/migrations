@@ -170,7 +170,6 @@ No código acima, ele irá criar a tabela users com os campos id, name, pass, em
 Também pode-se fazer algo mais detalhado com migrations, veja:
 <pre>
 <code><?php
-
 class AddUserTable extends AppMigrations {
     var $uses = array('Profile');
 
