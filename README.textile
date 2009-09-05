@@ -140,15 +140,12 @@ Identico ao $uses do controller.
 
 h3. Exemplo de classe usando o AppMigrations
 
-<pre>
-<code><?php
+bc. <?php
 /*
  Arquivo: 20090228181615_add_user_table.php
  Ou seja: Criado em 28/02/2009 18:16:15 e o nome da classe é AddUserTable (o nome da classe deve ser um camelize do nome do arquivo sem a data).
 */
-
 class AddUserTable extends AppMigrations {
-
     function up() {
         $this->createTable('users', array(
             'name' => 'string',
@@ -157,26 +154,22 @@ class AddUserTable extends AppMigrations {
         ));
         // Não precisa colocar id, created ou modified
     }
-
     function down() {
         $this->dropTable('users');
     }
 }
-?></code>
-</pre>
+?>
 
 No código acima, ele irá criar a tabela users com os campos id, name, pass, email, created e modified.
 
 Também pode-se fazer algo mais detalhado com migrations, veja:
 
-<pre>
-<code><?php
+bc. <?php
 /*
  Class AddUserTable
 */
 class AddUserTable extends AppMigrations {
     var $uses = array('Profile');
-
     function up() {
         $this->createTable('users',array(
             'pass' => 'string',
@@ -192,13 +185,11 @@ class AddUserTable extends AppMigrations {
             $user->save();
         }
     }
-
     function down() {
         $this->dropTable('users');
     }
 }
-?></code>
-</pre>
+?>
 
 Ou seja, é possível acessar models já existentes ou até mesmo inserindo registros na tabela que está sendo criada naquele momento.
 
