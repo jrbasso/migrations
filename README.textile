@@ -168,8 +168,12 @@ class AddUserTable extends AppMigrations {
 No código acima, ele irá criar a tabela users com os campos id, name, pass, email, created e modified.
 
 Também pode-se fazer algo mais detalhado com migrations, veja:
+
 <pre>
 <code><?php
+/*
+ Class AddUserTable
+*/
 class AddUserTable extends AppMigrations {
     var $uses = array('Profile');
 
