@@ -194,14 +194,14 @@ class MigrationShell extends Shell {
 			}
 			$date = $this->args[0];
 			if (!ctype_digit($date) || strlen($date) !== 14) {
-				if ($date === 'last') {
-					$date = $this->lastVersion - 1;
-				} else {
+				if ($date !== 'last') {
 					$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
 					return false;
 				}
+				$date = $this->lastVersion - 1;
+			} else {
+				$date = $this->_dateToTimestamp($date);
 			}
-			$date = $this->_dateToTimestamp($date);
 		}
 		end($this->_versions); // Reverse execute
 		while (true) {
