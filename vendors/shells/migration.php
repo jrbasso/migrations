@@ -238,7 +238,7 @@ class MigrationShell extends Shell {
 		if ($this->down(true)) {
 			if (isset($this->params['force'])) {
 				App::import('Vendor', $this->_pluginName . '.Migration');
-				$migration = new Migration($this->connection, $this);
+				$migration = new Migration($this);
 
 				$tables = $this->db->listSources();
 				if (!empty($tables)) {
