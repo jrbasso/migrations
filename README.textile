@@ -26,7 +26,7 @@ O console tem as seguintes funções:
 * help: mostrar o modo de utilização básico;
 * create: cria um arquivo de migrations com o template. Como parâmetro deve ser passado um nome de referência, sem espaços e acentos;
 * up: atualiza para a versão mais recente. Opcionalmente, pode ser passado um parâmetro com a data e hora (formato YYYYMMDDHHMMSS) para informar o momento máximo que deseja-se atualizar;
-* down: tem como parâmetro uma data e hora (formato YYYYMMDDHHMMSS) para informar até que momento deseja remover;
+* down: tem como parâmetro uma data e hora (formato YYYYMMDDHHMMSS) para informar até que momento deseja remover. É possível trocar a data pelo texto "last" para remover o último migration instalado;
 * reset: irá executar o down de todos os migrations instalados. Poderá ser usado o parâmetro -force para executar todos os down's e no final limpar o restante do banco de dados (caso alguma tabela não tenha sido criada pelo sistema de migrations);
 * rebuild: executará o reset (também poderá ser passado o parâmetro -force) e, em seguida, executará um up até o último migration.
 

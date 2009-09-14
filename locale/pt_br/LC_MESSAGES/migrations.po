@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Migrations Plugin\n"
-"POT-Creation-Date: 2009-03-01 15:13-0300\n"
-"PO-Revision-Date: 2009-03-01 15:24-0300\n"
+"Project-Id-Version: Migrations\n"
+"POT-Creation-Date: 2009-09-14 19:33-0300\n"
+"PO-Revision-Date: 2009-09-14 19:57-0300\n"
 "Last-Translator: Juan Basso <jrbasso@gmail.com>\n"
 "Language-Team: Juan Basso <jrbasso@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,71 +16,193 @@ msgstr ""
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: BRAZIL\n"
 
-#: \vendors\shells\migration.php:51
+#: \vendors\migration.php:56
+msgid "Model \":model\" not exists."
+msgstr "Model \":model\" não existe."
+
+#: \vendors\migration.php:124
+msgid "Creating table \":table\"... "
+msgstr "Criando tabela \":table\"..."
+
+#: \vendors\migration.php:160
+msgid "Dropping table \":table\"... "
+msgstr "Apagando tabela \":table\"..."
+
+#: \vendors\migration.php:179
+msgid "Creating column \":column\"... "
+msgstr "Criando coluna \":column\"..."
+
+#: \vendors\migration.php:202
+msgid "Removing column \":column\"... "
+msgstr "Removendo coluna \":column\"..."
+
+#: \vendors\migration.php:225
+msgid "Changing column \":column\"... "
+msgstr "Alterando coluna \":column\"..."
+
+#: \vendors\migration.php:229
+msgid "column not found."
+msgstr "coluna não encontrada."
+
+#: \vendors\migration.php:257
+msgid "Renaming column \":old\" to \":new\"..."
+msgstr "Renomeando coluna \":old\" por \":new\"..."
+
+#: \vendors\migration.php:304
+msgid "> Method \":method\" not implemented. Skipping..."
+msgstr "> Método \":method\" não implementado. Pulando..."
+
+#: \vendors\shells\migration.php:75
+msgid "Nothing installed."
+msgstr "Nada instalado."
+
+#: \vendors\shells\migration.php:79;165;215;295
+msgid "m/d/Y H:i:s"
+msgstr "d/m/Y H:i:s"
+
+#: \vendors\shells\migration.php:84
 msgid "Migrations Shell"
 msgstr "Migrations Shell"
 
-#: \vendors\shells\migration.php:53
-msgid "Path to migrations classes: %s"
-msgstr "Caminho para classes de migrations: %s"
+#: \vendors\shells\migration.php:87
+msgid "Path to migrations classes: :path"
+msgstr "Caminho das classes de migrations: :path"
 
-#: \vendors\shells\migration.php:54
-msgid "Connection to the database: %s"
-msgstr "Conexão com o banco de dados: %s"
+#: \vendors\shells\migration.php:91
+msgid "Connection to the database: :connection"
+msgstr "Conexão com a base de dados: :connection"
 
-#: \vendors\shells\migration.php:55
-msgid "Last migration installed: %s"
-msgstr "Última migração instalada: %s"
+#: \vendors\shells\migration.php:95
+msgid "Last migration installed: :date"
+msgstr "Último migration instalado: :date"
 
-#: \vendors\shells\migration.php:68
+#: \vendors\shells\migration.php:122
 msgid "Your datasource is not supported."
 msgstr "Seu datasource não é suportado."
 
-#: \vendors\shells\migration.php:123
-msgid "Can not execute drop tables."
-msgstr "Não foi possível executar o drop das tabelas."
+#: \vendors\shells\migration.php:154;198
+msgid "Date must be in format YYYYMMDDHHMMSS."
+msgstr "A data deve estar no formato AAAAMMDDHHMMSS."
 
-#: \vendors\shells\migration.php:151
-msgid "Specified path does not exist."
-msgstr "O caminho informado não existe."
+#: \vendors\shells\migration.php:163
+msgid "Executing file :file..."
+msgstr "Executando arquivo :file..."
 
-#: \vendors\shells\migration.php:175
-msgid "The class %s not in file."
-msgstr "A class %s não está no arquivo."
+#: \vendors\shells\migration.php:165
+msgid "Can not be execute :class (:date)."
+msgstr "Não pode executar :class (:date)."
 
-#: \vendors\shells\migration.php:180
-msgid "Class %s not extends Migration."
-msgstr "A classe %s não extende Migration."
+#: \vendors\shells\migration.php:178
+msgid "All updated."
+msgstr "Tudo atualizado."
 
-#: \vendors\shells\migration.php:222
-msgid "Schema table \"%s\" can not be created."
-msgstr "A tabela de esquema \"%s\" não pode ser criada."
+#: \vendors\shells\migration.php:186
+msgid "No version installed."
+msgstr "Nenhuma versão instalada."
+
+#: \vendors\shells\migration.php:192
+msgid "Date is needed or input \"last\" to revert the last up."
+msgstr "A data é necessária ou entrar com \"last\" para reverter o último up."
+
+#: \vendors\shells\migration.php:211
+msgid "Executing down of :migration (:date)..."
+msgstr "Executando down de :migration (:date)..."
+
+#: \vendors\shells\migration.php:221
+msgid "Error in down."
+msgstr "Erro no down."
 
 #: \vendors\shells\migration.php:231
+msgid "All down."
+msgstr "Tudo revertido."
+
+#: \vendors\shells\migration.php:252
+msgid "Can not execute drop of all tables."
+msgstr "Não pode executar o drop de todas tabelas."
+
+#: \vendors\shells\migration.php:259
+msgid "Resetted."
+msgstr "Reiniciado."
+
+#: \vendors\shells\migration.php:276
+msgid "Let me know the name of migration ..."
+msgstr "Deixe-me saber o nome do migration..."
+
+#: \vendors\shells\migration.php:285
+msgid "I did not find that your template ..."
+msgstr "Eu não pude encontrar o seu template..."
+
+#: \vendors\shells\migration.php:301
+msgid "Oops, did not write the migration!"
+msgstr "Oops, não escrevi seu migration!"
+
+#: \vendors\shells\migration.php:304
+msgid "Migration created successfully!"
+msgstr "Migration criado com sucesso!"
+
+#: \vendors\shells\migration.php:305
+msgid "Go and update the method UP and DOWN"
+msgstr "Vá e atualize os métodos UP and DOWN."
+
+#: \vendors\shells\migration.php:307
+msgid "The file is in: :file"
+msgstr "O arquivo está em: :file"
+
+#: \vendors\shells\migration.php:319
+msgid "Specified path does not exist."
+msgstr "O diretório especificado não existe."
+
+#: \vendors\shells\migration.php:321
+msgid "Creates the following directory: :path"
+msgstr "Crie o seguinte diretório: :path"
+
+#: \vendors\shells\migration.php:349
+msgid "File \":file\" can not be read. Check if exists or have privileges for your user."
+msgstr "Arquivo \":file\" não pode ser lido. Verifique se existe e tem privilégios para seu usuário."
+
+#: \vendors\shells\migration.php:360
+msgid "The class :classname not in file."
+msgstr "A classe :classname não está no arquivo."
+
+#: \vendors\shells\migration.php:365
+msgid "Class :classname not extends Migration."
+msgstr "Classe :classname não herda Migration."
+
+#: \vendors\shells\migration.php:387
+msgid "Schema table \":tablename\" can not be created."
+msgstr "Esquema de \":tablename\" não pode ser criada."
+
+#: \vendors\shells\migration.php:390
+msgid "Schema table \":tablename\" created."
+msgstr "Esquema de \":tablename\" criada."
+
+#: \vendors\shells\migration.php:418
 msgid "Usage: cake migration <command> <arg1> <arg2>..."
 msgstr "Use: cake migration <comando> <arg1> <arg2>..."
 
-#: \vendors\shells\migration.php:233
+#: \vendors\shells\migration.php:420
 msgid ""
 "Params:\n"
 "\t-connection <config>\n"
 "\t\tset db config <config>. Uses 'default' if none is specified.\n"
 "\t-path <dir>\n"
 "\t\tpath <dir> to read and write migrations scripts.\n"
-"\t\tdefault path: %s"
+"\t\tdefault path: :path"
 msgstr ""
 "Parâmetros:\n"
 "\t-connection <config>\n"
-"\t\tseta a configuração do banco de dados. O padrão é 'default'.\n"
+"\t\tseta a configuração de banco de dados. Usa 'default' se não informado.\n"
 "\t-path <dir>\n"
-"\t\tcaminho para ler e escrever as classes de migrations.\n"
-"\t\tcaminho padrão: %s"
+"\t\tdiretório <dir> para ler e escrever os scripts de migrations.\n"
+"\t\tcaminho padrão: :path"
 
-#: \vendors\shells\migration.php:240
+#: \vendors\shells\migration.php:429
 msgid ""
 "Commands:\n"
 "\tmigration help\n"
 "\t\tshows this help message.\n"
+"\tmigrations create <name>\n"
+"\t\tcreate a migration script.\n"
 "\tmigration up [date]\n"
 "\t\tupgrade database to specified date. If the date is not specified, latest is used. Date must be in format YYYYMMDDHHMMSS.\n"
 "\tmigration down <date>\n"
@@ -92,13 +214,15 @@ msgid ""
 msgstr ""
 "Comandos:\n"
 "\tmigration help\n"
-"\t\tmostra esta mensagem de help.\n"
+"\t\tmostra esta mensagem de ajuda.\n"
+"\tmigration create <nome>\n"
+"\t\tcria um script de migration.\n"
 "\tmigration up [data]\n"
-"\t\tatualiza o banco de dados até a data especificada. Se a data não for especificada, a última será usada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
+"\t\tatualiza o banco de dados até a data informada. Se a data não for informada, a última será utilizada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
 "\tmigration down <date>\n"
-"\t\treverte a database até a data especificada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
+"\t\tvolta o banco de dados para a data especificada. A data deve estar no formato AAAAMMDDHHMMSS.\n"
 "\tmigration reset\n"
-"\t\texecuta o down de todas as migrations. Se o parâmetro -force for usado, todas as tabelas restantes no banco serão excluídas.\n"
+"\t\texecuta o down de todos migrations. Se o parâmetro -force for usado, irá apagar todas as tabelas existentes no banco de dados.\n"
 "\tmigration rebuild\n"
-"\t\texecuta o comando de reset, depois de up. O parâmetro -force pode ser usado."
+"\t\texecuta o reset e um up. O parâmetro -force pode ser utilizado."
 
