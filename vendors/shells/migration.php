@@ -189,13 +189,17 @@ class MigrationShell extends Shell {
 			$date = 0; // Minimal date
 		} else {
 			if (!isset($this->args[0])) {
-				$this->err(__d('migrations', 'Date is needed.', true));
+				$this->err(__d('migrations', 'Date is needed or input "last" to revert the last up.', true));
 				return false;
 			}
 			$date = $this->args[0];
 			if (!ctype_digit($date) || strlen($date) !== 14) {
-				$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
-				return false;
+				if ($date === 'last') {
+					$date = $this->lastVersion - 1;
+				} else {
+					$this->err(__d('migrations', 'Date must be in format YYYYMMDDHHMMSS.', true));
+					return false;
+				}
 			}
 			$date = $this->_dateToTimestamp($date);
 		}
