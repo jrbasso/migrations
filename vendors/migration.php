@@ -65,10 +65,10 @@ class Migration {
 		$uses = get_class_vars('AppMigration');
 		$uses = $uses['uses'];
 		if (!is_array($uses)) {
-			$uses = array($uses);
+			$uses = (array)$uses;
 		}
 		if (!is_array($this->uses)) {
-			$this->uses = array($this->uses);
+			$this->uses = (array)$this->uses;
 		}
 		return array_unique(array_merge($uses, $this->uses));
 	}
