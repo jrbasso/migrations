@@ -280,7 +280,7 @@ class MigrationShell extends Shell {
 		if (!empty($this->params['template'])) {
 			$this->_template = $this->params['template'];
 			if (!file_exists($this->_template)){
-				$this->_template = $templatedir . $this->_template;
+				$this->_template = $templateDir . $this->_template;
 				if (!file_exists($this->_template)) {
 					$this->err(__d('migrations','I did not find that your template ...',true));
 					$this->_stop();
