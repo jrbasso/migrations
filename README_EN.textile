@@ -1,22 +1,3 @@
-Uma das grandes dificuldades dentro de um time de desenvolvimento WEB, sem dúvida, é manter o Banco de Dados atualizado entre todos ambientes de trabalho. Volta e meia um desenvolvedor faz alguma alteração no banco e não comunica o restante do grupo. Isto sempre causa retrabalho, bugs ou um programador arrancando o próprio cabelo.
-
-Uma das causas deste problema é que em nenhum momento rastreamos as modificações do banco em nossos projetos. Para o código temos o "SCM":1 (source code management), para controlar as tarefas temos os gerenciadores de projetos, para os documentos temos o Google Docs, mas para o banco de dados? Foi pensando nesses problemas que se criou o técnica de Migrations. O Migrations é uma forma de manter organizadas as modificações na estrutura do banco de dados, permitindo, dentre algumas facilidades, construir seu banco incrementalmente, retroceder alteração que não sejam mais adequadas ou trabalhar em ambientes com diversos programadores.
-
-O conceito básico de Migrations consiste em armazenar as modificações do banco em pequenos arquivos numa ordem cronológica. Esses arquivos devem conter informações que consigam construir ou destruir seu banco de uma versão para qualquer outra. Como se faz isto? Simples, indique no seu arquivo como proceder numa determinada atualização (UP) e como retroceder (DOWN), assim, quando quer ir para uma versão mais nova, execute todos os UPs dos arquivos mais recentes, e quando quer retroceder, execute os DOWNs até a versão mais antiga. Com ajuda de um programa auxiliar, que geralmente é um automatizador, você consegue executar facilmente tarefas como (re)construção de banco, atualização de alterações ou rollback’s de algo que não saiu como se devia.
-
-Em algumas implementações de Migrations é possível fazer manipulação de dados. Esta é uma facilidade muito interessante e os "DBA's":2 devem adorar. Imagine que você, em um determinado momento, queira fazer uma modificação no campo “nome_completo” quebrando-o em dois: “nome” e “sobrenome”. Com a manipulação você consegue fazer o tratamento dos dados e migrar, não só a estrutura do banco, mas também os dados que por ventura podem estar armazenados. Esta funcionalidade dá um pouco mais de poder ao Migrations, mas nem sempre esta presente em todas as implementações.
-
-Será baseado nisso que vamos construir um plugin para o framework "CakePHP":3, facilitando o desenvolvimento distribuído que utilizam o CakePHP.
-
-Projetos relacionados:
-* "Migrations para CakePHP usando YAML e PEAR por JoelMoss":4
-* "Migrations para CakePHP usando YAML sem PEAR por Georgi Momchilov":8
-* "Ruckusing":5
-* "Migrations no Ruby on Rails":6
-* "Migrations no framework PHP Akelos":7
-
-h1. English
-
 One of the great difficulties of today in web development, without a doubt, is maintaining a database amongst all users on a team. Every so often, a member of the team makes a change and does not notify the rest of the team members. This always causes extra work, bugs, or a programmer to pull out their hair.
 
 One cause of this problem is that we do not track the changes to the database in our projects. We have a "SCM":1 (source code management), project management tools to control the tasks, use Google Docs for documents, but for the database? Thinking about this problems has created the idea of Migrations. Migrations is an organized way to track the changes in the structure of the database, allowing, among some fashion, to build your database incrementally, back out change that are no longer appropriate or work in environments with multiple developers.
@@ -43,15 +24,15 @@ Related Projects:
 [7]http://www.akelos.org/wiki/creating-and-running-migrations
 [8]http://bakery.cakephp.org/articles/view/cakephp-yaml-migrations-and-fixtures-withour-pear
 
-h2. Projetos relacionados
+h2. Related Projects
 
-* "Migrations para CakePHP usando YAML e PEAR por JoelMoss":4
-* "Migrations para CakePHP usando YAML sem PEAR por Georgi Momchilov":8
+* "Migrations for CakePHP using YAML with PEAR by JoelMoss":4
+* "Migrations for CakePHP using YAML without PEAR by Georgi Momchilov":8
 * "Ruckusing":5
-* "Migrations no Ruby on Rails":6
-* "Migrations no framework PHP Akelos":7
+* "Migrations on Ruby on Rails":6
+* "Migrations on Akelos PHP framework":7
 
-h2. Modo de utilização
+h2. Usage
 
 h3. Console
 
@@ -61,12 +42,12 @@ Initially the console will have the following functions:
 * create: creates an archive of the migrations with a template. Takes as a parameter a name for referencing the migration, without spaces or accents;
 * up: will serve to update to the latest version. Can optionally be passed a parameter with the date and time (format YYYYMMDDHHMMSS) to specify the maximum date/time you want to update;
 * down: as a parameter will have a date and time (format YYYYMMDDHHMMSS) to specify down to which date to remove. It is possible to instead use the parameter 'last' in order to remove the last migration installed;
-reset: will run down of all migrations installed. You can use the-force to perform all down’s and at the end clear the rest of the database (if any table is not created by the system migrations);
-rebuild: implement the reset (may also be passed the parameter -force) and then run an UP to the last migration.
+reset: will run down of all migrations installed. You can use the '-force' to perform all down’s and at the end clear the rest of the database (if any table is not created by the system migrations);
+rebuild: implement the reset (may also be passed the parameter '-force') and then run an UP to the last migration.
 
 The control of migrations installed is stored in a table of the database, called 'schema_migrations'. Take care not to bake this table, let alone change it.
 
-h3. Classe Migrations
+h3. Migrations Class
 
 Migrations is the parent class for migration files. This class will have all the facilities necessary for the development of the code. You can put a directory of your application file to include app_migrations.php methods common to all the children of Migrations, and makes files app_model.php, app_controller.php, etc.. Note that this file is optional. The structure you can check below:
 
@@ -89,11 +70,11 @@ You can use the following functions (the style will be described shortly):
 * removeIndex: Remove an index (under construction);
 
 
-Besides these methods, each migration can have its own callbacks, as in: @beforeCreateTable@, @afterCreateTable@, @beforeDropTable@, ... Besices these callbacks, you can also implement @beforeInstall@, @afterInstall@, @beforeUninstall@ e @afterUninstall@. In any of these callbacks, you can return false if there is an interruption in the migration that is in progress.
+Besides these methods, each migration can have its own callbacks, as in: @beforeCreateTable@, @afterCreateTable@, @beforeDropTable@, ... Besides these callbacks, you can also implement @beforeInstall@, @afterInstall@, @beforeUninstall@ and @afterUninstall@. In any of these callbacks, you can return false if there is an interruption in the migration that is in progress.
 
 And to facilitate the migration, one can write something to the screen, using the @out@ function.
 
-You can also instantiate a model using the $ uses variable in the class, as done in controllers. The model must exist! In the examples you can see the usefulness. If you want to create a model at runtime, without having the model file ready, you can do this through the getModel method.
+You can also instantiate a model using the $uses variable in the class, as done in controllers. The model must exist! In the examples you can see the usefulness. If you want to create a model at runtime, without having the model file ready, you can do this through the getModel method.
 
 h4. createTable
 
@@ -175,7 +156,7 @@ h4. $uses
 
 Identical to the variable $uses in a controller.
 
-h3. Exemplo de classe usando o AppMigrations
+h3. Examples of classes using AppMigrations
 
 bc. <?php
 /*
