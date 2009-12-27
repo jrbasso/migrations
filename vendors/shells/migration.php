@@ -221,7 +221,7 @@ class MigrationShell extends Shell {
 					$this->err(__d('migrations', 'Error in down.', true));
 					return false;
 				}
-				$this->SchemaMigration->del($cur['SchemaMigration']['id']);
+				$this->SchemaMigration->delete($cur['SchemaMigration']['id']);
 				if (prev($this->_versions)) {
 					continue;
 				}
