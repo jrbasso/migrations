@@ -1,43 +1,71 @@
 <?php
 /**
- * Classe mae que as migraçoes irao herdar
+ * Base migration class
+ *
+ * @link          http://github.com/jrbasso/migrations
+ * @package       migrations
+ * @subpackage    migrations.vendors
+ * @since         v 0.1
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ */
+
+/**
+ * Migration
  */
 class Migration {
 
-	/**
-	 * Uses models
-	 */
+/**
+ * Uses models
+ *
+ * @var array
+ * @access public
+ */
 	var $uses = array();
 
-	/**
-	 * Stop up/down on error
-	 */
+/**
+ * Stop up/down on error
+ *
+ * @var boolean
+ * @access public
+ */
 	var $stopOnError = true;
 
-	/**
-	 * DataSource link
-	 */
+/**
+ * DataSource link
+ *
+ * @var object
+ * @access protected
+ */
 	var $_db = null;
 
-	/**
-	 * Schell that called this class
-	 */
+/**
+ * Schell that called this class
+ *
+ * @var object
+ * @access protected
+ */
 	var $_shell;
 
-	/**
-	 * Fake CakeSchema
-	 */
+/**
+ * Fake CakeSchema
+ *
+ * @var object
+ * @access private
+ */
 	var $__fakeSchema = null;
 
-	/**
-	 * Error
-	 */
+/**
+ * Error
+ *
+ * @var boolean
+ * @access private
+ */
 	var $__error = false;
 
-	/**
-	 * Constructor
-	 */
-	function __construct( &$shell = null) {
+/**
+ * Constructor
+ */
+	function __construct(&$shell = null) {
 		$this->_shell =& $shell;
 		$this->_db =& $shell->db;
 		$this->__fakeSchema = new CakeSchema();
@@ -60,6 +88,13 @@ class Migration {
 			}
 		}
 	}
+
+/**
+ * Get uses from parent classes
+ *
+ * @return array
+ * @access protected
+ */
 	function _getUses(){
 		// Uses
 		$uses = get_class_vars('AppMigration');
@@ -72,9 +107,14 @@ class Migration {
 		}
 		return array_unique(array_merge($uses, $this->uses));
 	}
-	/**
-	 * Pega o model relativo a tabela
-	 */
+
+/**
+ * Get a model from a table name
+ *
+ * @param string $tableName
+ * @return object Model
+ * @access public
+ */
 	function getModel($tableName) {
 		if (!in_array($tableName, $this->_db->listSources())) {
 			return null;
@@ -82,10 +122,17 @@ class Migration {
 		return new AppModel(array('name' => Inflector::camelize(Inflector::singularize($tableName)), 'table' => $tableName, 'ds' => $this->_db->configKeyName));
 	}
 
-    /**
-     * Funçao de criaçao de tabela
-     */
-    function createTable($tableName, $columns, $indexes = array(), $options = array()) {
+/**
+ * Create a table
+ *
+ * @param string $tableName
+ * @param array $columns
+ * @param array $indexes
+ * @param array $options
+ * @return boolean
+ * @access public
+ */
+	function createTable($tableName, $columns, $indexes = array(), $options = array()) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -137,15 +184,24 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Funcao de alteraçao de tabela
-     */
-    function changeTable(){}
+/**
+ * Change some itens from table
+ *
+ * @todo Need implements. Cake core dont support this
+ * @return void
+ * @access public
+ */
+	function changeTable() {
+	}
 
-    /**
-     * Funçao de excluir tabela
-     */
-    function dropTable($tableName) {
+/**
+ * Drop a table
+ *
+ * @param string $tableName Name of table
+ * @return boolean
+ * @access public
+ */
+	function dropTable($tableName) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -168,10 +224,16 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Adicionar colunas
-     */
-    function addColumn($tableName, $columnName, $columnConfig = array()) {
+/**
+ * Include new column
+ *
+ * @param string $tableName
+ * @param string $columnName
+ * @param array $columnConfig
+ * @return boolean
+ * @access public
+ */
+	function addColumn($tableName, $columnName, $columnConfig = array()) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -192,10 +254,15 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Remover colunas
-     */
-    function removeColumn($tableName, $columnName) {
+/**
+ * Remove a column
+ *
+ * @param string $tableName
+ * @param string $columnName
+ * @return boolean
+ * @access public
+ */
+	function removeColumn($tableName, $columnName) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -215,10 +282,17 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Alterar colunas
-     */
-    function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
+/**
+ * Change column
+ *
+ * @param string $tableName
+ * @param string $columnName
+ * @param array $newColumnConfig
+ * @param boolean $verbose
+ * @return boolean
+ * @access public
+ */
+	function changeColumn($tableName, $columnName, $newColumnConfig = array(), $verbose = true) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -247,10 +321,16 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Renomear colunas
-     */
-    function renameColumn($tableName, $oldColumnName, $newColumnName) {
+/**
+ * Rename a column
+ *
+ * @param string $tableName
+ * @param string $oldColumnName
+ * @param string $newColumnName
+ * @return boolean
+ * @access public
+ */
+	function renameColumn($tableName, $oldColumnName, $newColumnName) {
 		if ($this->stopOnError && $this->__error) {
 			return false;
 		}
@@ -264,40 +344,68 @@ class Migration {
 		return false;
 	}
 
-    /**
-     * Adicionar Index
-     */
-    function addIndex(){}
-    /**
-     * Remover Index
-     */
-    function removeIndex(){}
+/**
+ * Add new index
+ *
+ * @todo Need implement.
+ * @return void
+ * @access public
+ */
+	function addIndex() {
+	}
 
-	/**
-	 * Output a message to console
-	 */
+/**
+ * Remove a index
+ *
+ * @todo Need implement.
+ * @return void
+ * @access public
+ */
+	function removeIndex() {
+	}
+
+/**
+ * Output a message to console
+ *
+ * @param string $message
+ * @param boolean $newLine
+ * @return void
+ * @access public
+ */
 	function out($message, $newLine = true) {
 		if ($this->_shell) {
 			$this->_shell->out($message, $newLine);
 		}
 	}
 
-	/**
-	 * Install revision
-	 */
+/**
+ * Install revision
+ *
+ * @return boolean
+ * @access public
+ */
 	function install() {
 		return $this->_exec('up', 'Install');
 	}
-	/**
-	 * Uninstall revision
-	 */
+
+/**
+ * Uninstall revision
+ *
+ * @return boolean
+ * @access public
+ */
 	function uninstall() {
 		return $this->_exec('down', 'Uninstall');
 	}
 
-	/**
-	 * Execute Install and Uninstall methods
-	 */
+/**
+ * Execute Install and Uninstall methods
+ *
+ * @param string $command Can be 'up' or 'down'
+ * @param string $callback Name of callback function
+ * @return boolean
+ * @access protected
+ */
 	function _exec($command, $callback) {
 		$this->__error = false;
 		if (!method_exists($this, $command)) {
