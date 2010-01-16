@@ -100,7 +100,7 @@ class MigrationShell extends Shell {
 
 	function _paramsParsing(){
 		if (empty($this->params['path'])) {
-			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
+			$this->path = APP_PATH . 'config' . DS . 'schema' . DS . 'migrations';
 		} else {
 			$this->path = rtrim($this->params['path'], DS);
 		}
@@ -319,7 +319,7 @@ class MigrationShell extends Shell {
 			$this->err(__d('migrations', 'Specified path does not exist.', true));
 			$this->out(String::insert(
 					__d('migrations', 'Creates the following directory: :path',true),
-					array('path'=>APP_PATH.'config'.DS.'sql'.DS.'migrations')
+					array('path' => APP_PATH . 'config' . DS . 'schema' . DS . 'migrations')
 				)
 			);
 			$this->_stop();
@@ -424,7 +424,7 @@ class MigrationShell extends Shell {
 	-path <dir>
 		path <dir> to read and write migrations scripts.
 		default path: :path", true),
-		array ('path' => $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations')));
+		array ('path' => $this->params['working'] . DS . 'config' . DS . 'schema' . DS . 'migrations')));
 
 		$this->out(__d('migrations', 
 "Commands:
