@@ -1,16 +1,27 @@
 <?php
-/*
+/**
  * :niceName Migration
- * :date
- * 
+ *
+ * @since :date
  */
 class :niceName extends AppMigration {
-	/* up method */
+
+/**
+ * Up Method
+ *
+ * @return void
+ * @access public
+ */
 	function up() {
 		// do something!
 	}
 
-	/* down method */
+/**
+ * Down Method
+ *
+ * @return void
+ * @access public
+ */
 	function down() {
 		// crash something!
 	}

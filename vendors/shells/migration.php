@@ -1,35 +1,59 @@
 <?php
+/**
+ * Shell for Migration
+ *
+ * @link          http://github.com/jrbasso/migrations
+ * @package       migrations
+ * @subpackage    migrations.vendors.shells
+ * @since         v 0.1
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ */
 
+/**
+ * MigrationShell class
+ */
 class MigrationShell extends Shell {
-
-	/**
-	 * Path to installers files
-	 */
+/**
+ * Path to installers files
+ *
+ * @var string
+ * @access public
+ */
 	var $path = null;
-
-	/**
-	 * Name of database
-	 */
+/**
+ * Name of database
+ *
+ * @var string
+ * @access public
+ */
 	var $connection = 'default';
-
-	/**
-	 * DB
-	 */
+/**
+ * DB
+ *
+ * @var object
+ * @access public
+ */
 	var $db = null;
-
-	/**
-	 * Last installed version
-	 */
+/**
+ * Last installed version
+ *
+ * @var integer Timestamp
+ * @access public
+ */
 	var $lastVersion = 0;
-
-	/**
-	 * Schema table in database
-	 */
+/**
+ * Schema table in database
+ *
+ * @var string
+ * @access protected
+ */
 	var $_schemaTable = 'schema_migrations';
-
-	/**
-	 * Schema structure
-	 */
+/**
+ * Schema structure
+ *
+ * @var array
+ * @access protected
+ */
 	var $_schemaStructure = array(
 		'id' => array(
 			'type' => 'integer',
@@ -56,15 +80,20 @@ class MigrationShell extends Shell {
 			'default' => NULL
 		)
 	);
-
-	/**
-	 * Name of plugin directory
-	 */
+/**
+ * Name of plugin directory
+ *
+ * @var string
+ * @access protected
+ */
 	var $_pluginName = null;
 
-	/**
-	 * Startup script
-	 */
+/**
+ * Startup script
+ *
+ * @return void
+ * @access public
+ */
 	function startup() {
 		$this->_paramsParsing();
 		
@@ -98,7 +127,13 @@ class MigrationShell extends Shell {
 		$this->hr();
 	}
 
-	function _paramsParsing(){
+/**
+ * Parse params
+ *
+ * @return void
+ * @access protected
+ */
+	function _paramsParsing() {
 		if (empty($this->params['path'])) {
 			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
 		} else {
@@ -112,9 +147,12 @@ class MigrationShell extends Shell {
 		}
 	}
 
-	/**
-	 * Configs of database
-	 */
+/**
+ * Configs of database, creating a table for migrations schema if need
+ *
+ * @return void
+ * @access protected
+ */
 	function _startDBConfig() {
 		App::import('Model', array('ConnectionManager', 'Model'));
 		$this->db =& ConnectionManager::getDataSource($this->connection);
@@ -137,16 +175,22 @@ class MigrationShell extends Shell {
 		$this->_versions = $this->SchemaMigration->find('all', array('order' => array('SchemaMigration.version' => 'ASC')));
 	}
 
-	/**
-	 * Main
-	 */
+/**
+ * Main
+ *
+ * @return void
+ * @access public
+ */
 	function main() {
 		$this->help();
 	}
 
-	/**
-	 * Install or update database
-	 */
+/**
+ * Install or update database
+ *
+ * @return string
+ * @access public
+ */
 	function up() {
 		if (isset($this->args[0])) {
 			$date = $this->args[0];
@@ -178,9 +222,13 @@ class MigrationShell extends Shell {
 		return __d('migrations', 'All updated.', true) . "\n";
 	}
 
-	/**
-	 * Drop or downgrade database
-	 */
+/**
+ * Drop or downgrade database
+ *
+ * @param boolean $all If down all tables
+ * @return string
+ * @access public
+ */
 	function down($all = false) {
 		if ($this->lastVersion == 0) {
 			return __d('migration', 'No version installed.', true) . "\n";
@@ -210,9 +258,9 @@ class MigrationShell extends Shell {
 				$this->out(
 					String::insert(__d('migrations',
 						'Executing down of :migration (:date)...', true),
-						array (
-						       'migration' => $cur['SchemaMigration']['classname'],
-						       'date' => date(__d('migrations', 'm/d/Y H:i:s', true), $cur['SchemaMigration']['version'])
+						array(
+							'migration' => $cur['SchemaMigration']['classname'],
+							'date' => date(__d('migrations', 'm/d/Y H:i:s', true), $cur['SchemaMigration']['version'])
 						)
 					)
 				);
@@ -231,9 +279,12 @@ class MigrationShell extends Shell {
 		return __d('migrations', 'All down.', true) . "\n";
 	}
 
-	/**
-	 * Down all migrations
-	 */
+/**
+ * Down all migrations
+ *
+ * @return mixed String if reseted or false if fail
+ * @access public
+ */
 	function reset() {
 		if ($this->down(true)) {
 			if (isset($this->params['force'])) {
@@ -261,57 +312,66 @@ class MigrationShell extends Shell {
 		return false;
 	}
 
-	/**
-	 * Down all migrations an Up later
-	 */
+/**
+ * Down all migrations an Up later
+ *
+ * @return boolean
+ * @access public
+ */
 	function rebuild() {
 		return $this->reset() && $this->up();
 	}
 	
-	/**
-	 * Create template
-	 */
-	function create(){
-		if (empty($this->args[0]) || !is_string($this->args[0])){
+/**
+ * Create template
+ *
+ * @return void
+ * @access public
+ */
+	function create() {
+		if (empty($this->args[0]) || !is_string($this->args[0])) {
 			$this->err(__d('migrations', 'Let me know the name of migration ...', true));
 			$this->_stop();
 		}
 		$templateDir = dirname(__FILE__) . DS . 'templates' . DS;
 		if (!empty($this->params['template'])) {
 			$this->_template = $this->params['template'];
-			if (!file_exists($this->_template)){
+			if (!file_exists($this->_template)) {
 				$this->_template = $templateDir . $this->_template;
 				if (!file_exists($this->_template)) {
-					$this->err(__d('migrations','I did not find that your template ...',true));
+					$this->err(__d('migrations', 'I did not find that your template ...', true));
 					$this->_stop();
 				}
 			}
 		} else {
 			$this->_template = $templateDir . 'single_template.php';
 		}
-		App::import('Core','File');
-		$strings = array (
+		App::import('Core', 'File');
+		$strings = array(
 			'niceName' => Inflector::camelize($this->args[0]),
-			'date' => date(__d('migrations','m/d/Y H:i:s',true))
+			'date' => date(__d('migrations', 'm/d/Y H:i:s',true))
 		);
 		$template = new File($this->_template);
-		$filename = $this->path.DS.date('YmdHis').'_'.Inflector::underscore($this->args[0]).'.php';
+		$filename = $this->path . DS . date('YmdHis') . '_' . Inflector::underscore($this->args[0]) . '.php';
 		$file = new File($filename, true);
-		if (!$file->write(String::insert($template->read(), $strings))){
-			$this->err(__d('migrations','Oops, did not write the migration!',true));
+		if (!$file->write(String::insert($template->read(), $strings))) {
+			$this->err(__d('migrations', 'Oops, did not write the migration!',true));
 			$this->_stop();
 		}
-		$this->out(__d('migrations','Migration created successfully!', true));
-		$this->out(__d('migrations','Go and update the method UP and DOWN', true));
+		$this->out(__d('migrations', 'Migration created successfully!', true));
+		$this->out(__d('migrations', 'Go and update the method UP and DOWN', true));
 		$this->out(String::insert(
-			__d('migrations','The file is in: :file', true),
-			array('file'=> $filename)
+			__d('migrations', 'The file is in: :file', true),
+			array('file' => $filename)
 		));
 	}
 
-	/**
-	 * Read path info
-	 */
+/**
+ * Read path info
+ *
+ * @return void
+ * @access protected
+ */
 	function _readPathInfo() {
 		App::import('Core', 'Folder');
 		$folder = new Folder($this->path);
@@ -319,7 +379,7 @@ class MigrationShell extends Shell {
 			$this->err(__d('migrations', 'Specified path does not exist.', true));
 			$this->out(String::insert(
 					__d('migrations', 'Creates the following directory: :path',true),
-					array('path'=>APP_PATH.'config'.DS.'sql'.DS.'migrations')
+					array('path' => APP_PATH . 'config' . DS . 'sql' . DS . 'migrations')
 				)
 			);
 			$this->_stop();
@@ -341,9 +401,15 @@ class MigrationShell extends Shell {
 		//$this->_filesInfo = Set::sort($filesInfo, '/timestamp', 'asc');
 	}
 
-	/**
-	 * Check if class and action exists to execute
-	 */
+/**
+ * Check if class and action exists to execute
+ *
+ * @param string $action
+ * @param string $filename
+ * @param string $classname
+ * @return boolean
+ * @access protected
+ */
 	function _exec($action, $filename, $classname) {
 		if (!is_readable($filename)) {
 			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have privileges for your user.', true), array('file'=>$filename)));
@@ -357,29 +423,36 @@ class MigrationShell extends Shell {
 		}
 		include $filename;
 		if (!class_exists($classname)) {
-			$this->err(String::insert(__d('migrations', 'The class :classname not in file.', true), array('classname'=>$classname)));
+			$this->err(String::insert(__d('migrations', 'The class :classname not in file.', true), array('classname' => $classname)));
 			return false;
 		}
 		$script = new $classname($this);
 		if (!is_subclass_of($script, 'Migration')) {
-			$this->err(String::insert(__d('migrations', 'Class :classname not extends Migration.', true), array('classname'=>$classname)));
+			$this->err(String::insert(__d('migrations', 'Class :classname not extends Migration.', true), array('classname' => $classname)));
 			return false;
 		}
 		return $script->$action();
 	}
 
-	/**
-	 * Timestamp of date in YYYYMMDDHHMMSS format
-	 */
+/**
+ * Timestamp of date in YYYYMMDDHHMMSS format
+ *
+ * @param string $date Date in format YYYYMMDDHHMMSS
+ * @return integer Timestamp
+ * @access protected
+ */
 	function _dateToTimestamp($date) {
 		$data = explode("\r\n", chunk_split($date, 2)); // 0.1 = year, 2 = month, 3 = day, 4 = hour, 5 = minute, 6 second
 		array_pop($data);
 		return mktime($data[4], $data[5], $data[6], $data[2], $data[3], $data[0] . $data[1]);
 	}
 
-	/**
-	 * Function to create table of SchemaMigrations
-	 */
+/**
+ * Function to create table of SchemaMigrations
+ *
+ * @return void
+ * @access private
+ */
 	function __createTable() {
 		$fakeSchema = new CakeSchema();
 		$fakeSchema->tables = array($this->_schemaTable => $this->_schemaStructure);
@@ -391,6 +464,12 @@ class MigrationShell extends Shell {
 		}
 	}
 
+/**
+ * Check if table of migrations is ready
+ *
+ * @return void
+ * @access private
+ */
 	function __checkTable() {
 		$describe = $this->db->describe($this->_schemaTable);
 		if (array_keys($describe) == array_keys($this->_schemaStructure)) { // Chaves iguais
@@ -411,9 +490,12 @@ class MigrationShell extends Shell {
 		$this->__createTable();
 	}
 
-	/**
-	 * Help
-	 */
+/**
+ * Help
+ *
+ * @return void
+ * @access public
+ */
 	function help() {
 		$this->out(__d('migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
@@ -440,7 +522,6 @@ class MigrationShell extends Shell {
 		execute down of all migrations. If param -force is used, this will drop all tables in database that exist.
 	migration rebuild
 		execute a reset an up actions. Param -force can be used.", true));
-
 	}
 
 }
