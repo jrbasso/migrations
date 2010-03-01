@@ -96,7 +96,7 @@ class MigrationShell extends Shell {
  */
 	function startup() {
 		$this->_paramsParsing();
-		
+
 		$this->_startDBConfig();
 		$this->_readPathInfo();
 
@@ -107,9 +107,9 @@ class MigrationShell extends Shell {
 			$this->lastVersion = $last['SchemaMigration']['version'];
 			$last = date(__d('migrations', 'm/d/Y H:i:s', true), $last['SchemaMigration']['version']);
 		}
-		
+
 		parent::startup();
-		
+
 		$this->out(__d('migrations', 'Migrations Shell', true));
 		$this->hr();
 		$this->out(String::insert(
@@ -162,7 +162,7 @@ class MigrationShell extends Shell {
 		}
 		$this->db->cacheSources = false;
 		$sources = $this->db->listSources();
-		
+
 		if (!is_array($sources)) { // Database connection error
 			$this->_stop();
 		}
@@ -321,7 +321,7 @@ class MigrationShell extends Shell {
 	function rebuild() {
 		return $this->reset() && $this->up();
 	}
-	
+
 /**
  * Create template
  *
@@ -385,7 +385,7 @@ class MigrationShell extends Shell {
 			$this->_stop();
 		}
 		$read = $folder->read();
-		
+
 		$filesInfo = array();
 		foreach ($read[1] as $id => $file) { // Check only files
 			if (!preg_match('/^(\d{14})_(\w+)\.php/', $file, $matches)) {
@@ -416,10 +416,12 @@ class MigrationShell extends Shell {
 			return false;
 		}
 		App::import('Vendor', $this->_pluginName . '.Migration'); // To not need include in migration file
-		if (file_exists(APP_PATH . 'app_migration.php')) {
-			include APP_PATH . 'app_migration.php';
-		} else {
-			App::import('Vendor', $this->_pluginName . '.AppMigration');
+		if(!class_exists('AppMigration')) {
+			if (file_exists(APP_PATH . 'app_migration.php')) {
+				include APP_PATH . 'app_migration.php';
+			} else {
+				App::import('Vendor', $this->_pluginName . '.AppMigration');
+			}
 		}
 		include $filename;
 		if (!class_exists($classname)) {
@@ -508,7 +510,7 @@ class MigrationShell extends Shell {
 		default path: :path", true),
 		array ('path' => $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations')));
 
-		$this->out(__d('migrations', 
+		$this->out(__d('migrations',
 "Commands:
 	migration help
 		shows this help message.
