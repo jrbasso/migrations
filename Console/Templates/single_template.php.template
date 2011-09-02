@@ -26,5 +26,3 @@ class :niceName extends AppMigration {
 		// crash something!
 	}
 }
-
-?>
