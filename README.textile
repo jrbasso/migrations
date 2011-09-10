@@ -8,22 +8,6 @@ In some implementations of Migrations, you may be able to perform data manipulat
 
 What we have built is a plugin for the framework "CakePHP":3, facilitating the distributed development for those using CakePHP.
 
-Related Projects:
-* "Migrations for CakePHP using YAML and PEAR by JoelMoss":4
-* "Migrations for CakePHP using YAML without PEAR by Georgi Momchilov":8
-* "Ruckusing":5
-* "Migrations with Ruby on Rails":6
-* "Migrations with Akelos PHP framework":7
-
-[1]http://en.wikipedia.org/wiki/Revision_control
-[2]http://en.wikipedia.org/wiki/Database_administrator
-[3]http://www.cakephp.org/
-[4]http://github.com/joelmoss/cakephp-db-migrations/tree/master
-[5]http://code.google.com/p/ruckusing/
-[6]http://api.rubyonrails.org/classes/ActiveRecord/Migration.html
-[7]http://www.akelos.org/wiki/creating-and-running-migrations
-[8]http://bakery.cakephp.org/articles/view/cakephp-yaml-migrations-and-fixtures-withour-pear
-
 h2. Related Projects
 
 * "Migrations for CakePHP using YAML with PEAR by JoelMoss":4
