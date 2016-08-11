@@ -1,17 +1,4 @@
 <?php
-/**
- * Shell for Migration
- *
- * @link          http://github.com/jrbasso/migrations
- * @package       migrations
- * @subpackage    migrations.vendors.shells
- * @since         v 0.1
- * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
- */
-
-/**
- * MigrationShell class
- */
 class MigrationShell extends Shell {
 /**
  * Path to installers files
@@ -86,15 +73,15 @@ class MigrationShell extends Shell {
  * @var string
  * @access protected
  */
-	var $_pluginName = null;
-
+	var $_pluginName = "Migrations";
+	
 /**
  * Startup script
  *
  * @return void
  * @access public
  */
-	function startup() {
+	public function startup() {
 		$this->_paramsParsing();
 
 		$this->_startDBConfig();
@@ -126,8 +113,7 @@ class MigrationShell extends Shell {
 		));
 		$this->hr();
 	}
-
-/**
+	/**
  * Parse params
  *
  * @return void
@@ -135,15 +121,12 @@ class MigrationShell extends Shell {
  */
 	function _paramsParsing() {
 		if (empty($this->params['path'])) {
-			$this->path = APP_PATH . 'config' . DS . 'sql' . DS . 'migrations';
+			$this->path = APP . 'Config' . DS . 'Migrations';
 		} else {
 			$this->path = rtrim($this->params['path'], DS);
 		}
 		if (!empty($this->params['connection'])) {
 			$this->connection = $this->params['connection'];
-		}
-		if (preg_match("/[\/\\\]plugins[\/\\\]([^\/]+)[\/\\\]vendors[\/\\\]shells[\/\\\]migration\.php$/", $this->Dispatch->shellPath, $matches)) {
-			$this->_pluginName = Inflector::camelize($matches[1]);
 		}
 	}
 
@@ -333,7 +316,7 @@ class MigrationShell extends Shell {
 			$this->err(__d('migrations', 'Let me know the name of migration ...', true));
 			$this->_stop();
 		}
-		$templateDir = dirname(__FILE__) . DS . 'templates' . DS;
+		$templateDir = CakePlugin::path($this->_pluginName) . 'Console' . DS . 'Templates' . DS;
 		if (!empty($this->params['template'])) {
 			$this->_template = $this->params['template'];
 			if (!file_exists($this->_template)) {
@@ -344,9 +327,10 @@ class MigrationShell extends Shell {
 				}
 			}
 		} else {
-			$this->_template = $templateDir . 'single_template.php';
+			$this->_template = $templateDir . 'single_template.php.template';
 		}
-		App::import('Core', 'File');
+		
+		App::uses('File', 'Utility');
 		$strings = array(
 			'niceName' => Inflector::camelize($this->args[0]),
 			'date' => date(__d('migrations', 'm/d/Y H:i:s',true))
@@ -373,7 +357,7 @@ class MigrationShell extends Shell {
  * @access protected
  */
 	function _readPathInfo() {
-		App::import('Core', 'Folder');
+		App::uses('Folder','Utility');
 		$folder = new Folder($this->path);
 		if (!$folder) {
 			$this->err(__d('migrations', 'Specified path does not exist.', true));
@@ -415,12 +399,12 @@ class MigrationShell extends Shell {
 			$this->err(String::insert(__d('migrations', 'File ":file" can not be read. Check if exists or have privileges for your user.', true), array('file'=>$filename)));
 			return false;
 		}
-		App::import('Vendor', $this->_pluginName . '.Migration'); // To not need include in migration file
+		App::import('Lib', $this->_pluginName . '.Migration'); // To not need include in migration file
 		if(!class_exists('AppMigration')) {
-			if (file_exists(APP_PATH . 'app_migration.php')) {
-				include APP_PATH . 'app_migration.php';
+			if (file_exists(APP . 'app_migration.php')) {
+				include APP . 'app_migration.php';
 			} else {
-				App::import('Vendor', $this->_pluginName . '.AppMigration');
+				App::import( 'Lib', $this->_pluginName . '.AppMigration');
 			}
 		}
 		include $filename;
@@ -473,7 +457,11 @@ class MigrationShell extends Shell {
  * @access private
  */
 	function __checkTable() {
-		$describe = $this->db->describe($this->_schemaTable);
+		$model = ClassRegistry::init(array(
+			'class'=>Inflector::classify($this->_schemaTable),
+			'type'=>'Model'
+		));
+		$describe = $this->db->describe($model);
 		if (array_keys($describe) == array_keys($this->_schemaStructure)) { // Chaves iguais
 			$ok = true;
 			foreach ($this->_schemaStructure as $key => $structure) {
@@ -499,6 +487,7 @@ class MigrationShell extends Shell {
  * @access public
  */
 	function help() {
+		
 		$this->out(__d('migrations', 'Usage: cake migration <command> <arg1> <arg2>...', true));
 		$this->hr();
 		$this->out(String::insert(__d('migrations',
@@ -508,7 +497,7 @@ class MigrationShell extends Shell {
 	-path <dir>
 		path <dir> to read and write migrations scripts.
 		default path: :path", true),
-		array ('path' => $this->params['working'] . DS . 'config' . DS . 'sql' . DS . 'migrations')));
+		array ('path' => APP . 'Config' . DS . 'Migrations')));
 
 		$this->out(__d('migrations',
 "Commands:
@@ -531,5 +520,3 @@ class MigrationShell extends Shell {
 if (!class_exists('CakeSchema')) {
 	class CakeSchema {} // Just to use cake functions
 }
-
-?>
